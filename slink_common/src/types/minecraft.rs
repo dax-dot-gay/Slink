@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{collections::HashMap, ops::Deref};
 
 use serde::{Deserialize, Serialize};
 use strfmt::strfmt;
@@ -6,7 +6,7 @@ use strfmt::strfmt;
 use crate::JAVA_CONTAINER_BASE;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct JavaVersion(u8);
+pub struct JavaVersion(pub u8);
 
 impl JavaVersion {
     pub fn version(&self) -> u8 {
@@ -14,7 +14,9 @@ impl JavaVersion {
     }
 
     pub fn image(&self) -> String {
-        strfmt!(JAVA_CONTAINER_BASE, version => self.0).unwrap()
+        let mut map = HashMap::<String, String>::new();
+        map.insert(String::from("version"), self.0.to_string());
+        strfmt(JAVA_CONTAINER_BASE, &map).unwrap()
     }
 }
 

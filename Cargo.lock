@@ -1012,7 +1012,9 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "bytesize",
+ "futures",
  "serde",
+ "slink_common",
  "tokio",
  "uuid",
 ]

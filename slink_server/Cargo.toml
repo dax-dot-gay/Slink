@@ -9,4 +9,6 @@ bytesize = { version = "2.0.1", features = ["serde"] }
 serde = { version = "1.0.219", features = ["derive"] }
 tokio = { version = "1.44.1", features = ["full"] }
 uuid = { version = "1.16.0", features = ["v4", "fast-rng", "serde"] }
+slink_common = {path = "../slink_common"}
+futures = "0.3.31"
 

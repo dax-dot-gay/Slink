@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, pin::Pin};
 
 use bytes::Bytes;
 use bytesize::ByteSize;
@@ -143,6 +143,6 @@ pub trait MinecraftRunner: Clone {
     async fn start(&mut self) -> Res<MinecraftRunnerStatus>;
     async fn stop(&mut self) -> Res<MinecraftRunnerStatus>;
     async fn metrics(&self) -> Res<Box<dyn Stream<Item = Option<MinecraftRunnerMetrics>> + Send>>;
-    async fn get_reader(&self) -> Res<Box<dyn Stream<Item = Option<Bytes>> + Send>>;
+    async fn get_reader(&self) -> Res<Pin<Box<dyn Stream<Item = Option<Bytes>> + Send>>>;
     async fn get_writer(&self) -> Res<Box<dyn AsyncWrite + Send>>;
 }

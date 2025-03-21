@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf, pin::Pin};
 
 use bollard::{container, secret};
 use bytes::Bytes;
@@ -287,7 +287,7 @@ impl MinecraftRunner for DockerHostRunner {
         })))
     }
 
-    async fn get_reader(&self) -> Res<Box<dyn Stream<Item = Option<Bytes>> + Send>> {
+    async fn get_reader(&self) -> Res<Pin<Box<dyn Stream<Item = Option<Bytes>> + Send>>> {
         if !self.status.running() {
             return Err(self.wrap(DockerHostError::InvalidOp));
         }
@@ -308,7 +308,7 @@ impl MinecraftRunner for DockerHostRunner {
             .await
             .or_else(|e| Err(self.wrap(DockerHostError::DockerError(e.to_string()))))?;
 
-        Ok(Box::new(attach.output.map(|i| {
+        Ok(Box::pin(attach.output.map(|i| {
             if let Ok(log) = i {
                 Some(log.into_bytes())
             } else {
