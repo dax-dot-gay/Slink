@@ -31,7 +31,9 @@
         "fill-labs.dependi"
       ]
     }
-  }
+  },
+  "initializeCommand": "sh -c ${localWorkspaceFolder}/scripts/precreate.sh",
+  "postCreateCommand": "bash -c /workspaces/${localWorkspaceFolderBasename}/scripts/postcreate.sh"
 
   // Use 'postCreateCommand' to run commands after the container is created.
   // "postCreateCommand": "docker --version"
