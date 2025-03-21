@@ -4,6 +4,14 @@ use serde::{Deserialize, Serialize};
 pub enum Error {
     #[error("An unexpected error occurred: {0}")]
     Unexpected(String),
+
+    #[error("A process runner ({scope}:{runner}) with ID {id} failed: {reason}")]
+    RunnerError {
+        scope: String,
+        runner: String,
+        id: String,
+        reason: String
+    }
 }
 
 impl Error {

@@ -1,1 +1,2 @@
-pub mod minecraft;
+mod minecraft;
+pub use minecraft::*;
