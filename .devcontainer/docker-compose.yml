@@ -13,6 +13,7 @@ services:
       - ../..:/workspaces:cached
       - ../volumes/servers:/slink/servers
       - ../volumes/certs:/slink/certificates
+      - ../Rocket.toml:/slink/Rocket.toml
 
     # Overrides default command so things don't shut down after the process ends.
     entrypoint: /usr/local/share/docker-init.sh

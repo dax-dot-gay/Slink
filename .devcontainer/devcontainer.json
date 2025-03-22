@@ -41,7 +41,11 @@
     }
   },
   "initializeCommand": "sh -c ${localWorkspaceFolder}/scripts/precreate.sh",
-  "postCreateCommand": "bash -c /workspaces/${localWorkspaceFolderBasename}/scripts/postcreate.sh"
+  "postCreateCommand": "bash -c /workspaces/${localWorkspaceFolderBasename}/scripts/postcreate.sh",
+  "containerEnv": {
+    "ROCKET_CONFIG": "/slink/Rocket.toml",
+    "ROCKET_SLINK": "{runner={host_base_path=\"${localWorkspaceFolder}/volumes/servers\"}}"
+  }
 
   // Use 'postCreateCommand' to run commands after the container is created.
   // "postCreateCommand": "docker --version"

@@ -1,0 +1,23 @@
+## defaults for _all_ profiles
+[default]
+address = "0.0.0.0"
+limits = { form = "1 MiB", json = "1 MiB", file = "4 GB" }
+
+[default.tls]
+certs = "/slink/certificates/server/slink.crt"
+key = "/slink/certificates/server/slink.key"
+
+## set only when compiled in debug mode, i.e, `cargo build`
+[debug]
+port = 8000
+secret_key = "o5Kb5Si8BTvUHe68XVde3vEknhllrp0D+zGf5HR4rHw="
+
+[debug.slink.database]
+uri = "mongodb://slink:slink@mongodb:27017/"
+database = "slink"
+
+[debug.slink.runner]
+mode = "docker_host"
+network = "slink"
+user = 1000
+group = 1000

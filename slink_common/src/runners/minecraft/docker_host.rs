@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::PathBuf, pin::Pin};
 
-use bollard::{container, image, secret};
+use bollard::{container, image, network, secret};
 use bytes::Bytes;
 use bytesize::ByteSize;
 use futures::{Stream, StreamExt as _};
@@ -121,6 +121,13 @@ impl MinecraftRunner for DockerHostRunner {
                     String::from("Not found."),
                 )))?
                 .or_else(|e| Err(self.wrap(DockerHostError::DockerError(e.to_string()))))?;
+        }
+
+        if let Err(_) = self.connection.inspect_network::<String>(&self.options.network, None).await {
+            self.connection.create_network(network::CreateNetworkOptions {
+                name: self.options.network.clone(),
+                ..Default::default()
+            }).await.or_else(|e| Err(self.wrap(DockerHostError::DockerError(e.to_string()))))?;
         }
 
         let _ = self.connection.remove_container(&self.container_name(), Some(container::RemoveContainerOptions {force: true, ..Default::default()})).await;
