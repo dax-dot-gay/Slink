@@ -1,9 +1,13 @@
 use std::path::PathBuf;
 
 use mongodb::options::ClientOptions;
+use rocket::{
+    Request,
+    request::{self, FromRequest},
+};
 use serde::Deserialize;
 
-use crate::runners::docker_host::DockerHostRunnerOptions;
+use crate::{ApiError, runners::docker_host::DockerHostRunnerOptions};
 
 #[derive(Deserialize, Clone, Debug)]
 #[serde(untagged)]
@@ -54,4 +58,17 @@ impl RunnerConfig {
 pub struct AppConfig {
     pub database: DatabaseConfig,
     pub runner: RunnerConfig,
+}
+
+#[async_trait::async_trait]
+impl<'r> FromRequest<'r> for AppConfig {
+    type Error = ApiError;
+
+    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        if let Ok(config) = req.rocket().figment().extract_inner::<AppConfig>("beans") {
+            request::Outcome::Success(config)
+        } else {
+            ApiError::configuration("Current configuration profile does not contain the required <profile>.slink block. Contact server administrator.").respond(req)
+        }
+    }
 }

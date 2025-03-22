@@ -1,18 +1,25 @@
-use slink_common::types::AppConfig;
+use rocket::{fairing::AdHoc, http::Status, serde::json::Json, Request};
+use slink_common::{types::{AppConfig, RequestId}, ApiError, ApiResult};
 
 #[macro_use] extern crate rocket;
 
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn index(config: AppConfig) -> ApiResult<Json<Vec<String>>> {
+    println!("{config:?}");
+    Ok(Json(vec![String::from("TEST")]))
+}
+
+#[catch(default)]
+fn handle_error(status: Status, request: &Request) -> ApiError {
+    request.local_cache(|| ApiError::Uncaught(format!("Error occurred, with original status code {status:?}"))).clone()
 }
 
 #[launch]
 fn rocket() -> _ {
-    let rocket = rocket::build();
-    let figment = rocket.figment();
-    let app_config: AppConfig = figment.extract_inner("slink").expect("Application config (<profile>.slink)");
-
-    println!("{app_config:?}");
-    rocket.mount("/", routes![index])
+    rocket::build()
+        .mount("/", routes![index])
+        .attach(AdHoc::on_request("Attach Request ID", |req, _| Box::pin(async move {
+            req.local_cache(|| RequestId::new());
+        })))
+        .register("/", catchers![handle_error])
 }
