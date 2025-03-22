@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::PathBuf, pin::Pin};
 
-use bollard::{container, secret};
+use bollard::{container, image, secret};
 use bytes::Bytes;
 use bytesize::ByteSize;
 use futures::{Stream, StreamExt as _};
@@ -30,12 +30,16 @@ pub enum DockerHostError {
 
     #[error("Encountered an error while retrieving the status of a container: {0}")]
     StatusError(String),
+
+    #[error("Unknown/invalid container image ({0}): {1}")]
+    BadImage(String, String),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DockerHostRunnerOptions {
     pub network: String,
     pub host_base_path: PathBuf,
+    pub run_as: String
 }
 
 #[derive(Clone)]
@@ -96,6 +100,31 @@ impl MinecraftRunner for DockerHostRunner {
     }
 
     async fn install(&mut self) -> Res<()> {
+        if let Err(_) = self
+            .connection
+            .inspect_image(&self.config.java_version.image())
+            .await
+        {
+            self.connection
+                .create_image(
+                    Some(image::CreateImageOptions {
+                        from_image: self.config.java_version.image(),
+                        ..Default::default()
+                    }),
+                    None,
+                    None,
+                )
+                .next()
+                .await
+                .ok_or(self.wrap(DockerHostError::BadImage(
+                    self.config.java_version.image(),
+                    String::from("Not found."),
+                )))?
+                .or_else(|e| Err(self.wrap(DockerHostError::DockerError(e.to_string()))))?;
+        }
+
+        let _ = self.connection.remove_container(&self.container_name(), Some(container::RemoveContainerOptions {force: true, ..Default::default()})).await;
+
         let mut ports: HashMap<String, HashMap<(), ()>> = HashMap::new();
         let mut port_mappings: HashMap<String, Option<Vec<secret::PortBinding>>> = HashMap::new();
         for port in self.config.ports.clone() {
@@ -140,6 +169,7 @@ impl MinecraftRunner for DockerHostRunner {
 
         let config = container::Config {
             hostname: Some(self.container_name()),
+            user: Some(self.options.run_as.clone()),
             exposed_ports: Some(ports),
             image: Some(self.config.java_version.image()),
             cmd: Some(cmd),

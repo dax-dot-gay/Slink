@@ -1,4 +1,4 @@
-use std::{error::Error, ops::Deref, path::PathBuf, pin::pin, str::FromStr};
+use std::{error::Error, path::PathBuf, str::FromStr};
 use futures::StreamExt;
 
 use bytesize::ByteSize;
@@ -25,7 +25,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
     let options = DockerHostRunnerOptions {
         network: String::from("bridge"),
-        host_base_path: PathBuf::from_str("/mnt/data1/Programming/Rust/Slink/volumes/servers").unwrap()
+        host_base_path: PathBuf::from_str("/mnt/data1/Programming/Rust/Slink/volumes/servers").unwrap(),
+        run_as: String::from("1000:1000")
     };
 
     let mut runner = DockerHostRunner::new(config, options)?;
