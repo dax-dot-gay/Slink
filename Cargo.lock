@@ -456,6 +456,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ct-codecs"
+version = "1.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b916ba8ce9e4182696896f015e8a5ae6081b305f74690baa8465e35f5a142ea4"
+
+[[package]]
 name = "ctr"
 version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -705,6 +711,12 @@ dependencies = [
  "colored",
  "log",
 ]
+
+[[package]]
+name = "fiat-crypto"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d"
 
 [[package]]
 name = "figment"
@@ -1566,9 +1578,9 @@ dependencies = [
 
 [[package]]
 name = "manor"
-version = "0.1.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37e90ccc46b4d6439b26c118b3fc7f1f448184f646fcc3089be399fa804667db"
+checksum = "2cab53c42e681aeed52a92745c04712020b603e764d6e9179af21a45fb7547b6"
 dependencies = [
  "manor_common",
  "manor_macros",
@@ -1576,9 +1588,9 @@ dependencies = [
 
 [[package]]
 name = "manor_common"
-version = "0.1.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "908d11dfb74f3a4fc3a8f6675c8f90c3b7f51e159bcdadb6a680fcbec54271e6"
+checksum = "b14c0eea65d28f8483e1764123af89db7c68a73b8f7ca9196c17be6538cb47e5"
 dependencies = [
  "async-trait",
  "bson",
@@ -1587,6 +1599,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "mongodb",
+ "once_cell",
  "pin-project",
  "serde",
  "thiserror 2.0.12",
@@ -1595,9 +1608,9 @@ dependencies = [
 
 [[package]]
 name = "manor_macros"
-version = "0.1.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "182d12f537316ae3924d309ba32ab7ab98706c38018e0fc7729c52f27ac6defa"
+checksum = "ba46edfc1f89ab1b5846c8e6b5ce099f415465628365e248ffceeb34feddbaf9"
 dependencies = [
  "convert_case 0.8.0",
  "darling",
@@ -1791,6 +1804,20 @@ name = "opaque-debug"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
+
+[[package]]
+name = "orion"
+version = "0.17.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf2e0b749a7c5fb3d43f06f19eff59b253b5480fa146533676cea27c3606530b"
+dependencies = [
+ "ct-codecs",
+ "fiat-crypto",
+ "getrandom 0.3.2",
+ "serde",
+ "subtle",
+ "zeroize",
+]
 
 [[package]]
 name = "overload"
@@ -2530,12 +2557,14 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "bytesize",
+ "chrono",
  "fern",
  "figment",
  "futures",
  "log",
  "manor",
  "mongodb",
+ "orion",
  "rocket",
  "rocket_ws",
  "serde",
@@ -3692,6 +3721,12 @@ dependencies = [
  "syn 2.0.100",
  "synstructure",
 ]
+
+[[package]]
+name = "zeroize"
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
 
 [[package]]
 name = "zerovec"

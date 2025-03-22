@@ -37,7 +37,11 @@ pub enum ApiError {
 
     #[error("Configuration error: {0}")]
     #[response(status = 500)]
-    Configuration(String)
+    Configuration(String),
+
+    #[error("Encountered a cryptographic error: {0}")]
+    #[response(status = 400)]
+    CryptographicError(String)
 }
 
 impl ApiError {

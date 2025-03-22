@@ -5,7 +5,7 @@ use rocket::{
     Request,
     request::{self, FromRequest},
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{ApiError, runners::docker_host::DockerHostRunnerOptions};
 
@@ -54,10 +54,26 @@ impl RunnerConfig {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AuthenticationConfig {
+    pub session_max_lifetime: chrono::TimeDelta
+}
+
+impl Default for AuthenticationConfig {
+    fn default() -> Self {
+        Self {
+            session_max_lifetime: chrono::TimeDelta::weeks(1)
+        }
+    }
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct AppConfig {
     pub database: DatabaseConfig,
     pub runner: RunnerConfig,
+
+    #[serde(default)]
+    pub authentication: AuthenticationConfig
 }
 
 #[async_trait::async_trait]
@@ -65,7 +81,7 @@ impl<'r> FromRequest<'r> for AppConfig {
     type Error = ApiError;
 
     async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        if let Ok(config) = req.rocket().figment().extract_inner::<AppConfig>("beans") {
+        if let Ok(config) = req.rocket().figment().extract_inner::<AppConfig>("slink") {
             request::Outcome::Success(config)
         } else {
             ApiError::configuration("Current configuration profile does not contain the required <profile>.slink block. Contact server administrator.").respond(req)

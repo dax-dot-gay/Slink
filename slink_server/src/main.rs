@@ -1,5 +1,10 @@
+use manor::Client;
 use rocket::{fairing::AdHoc, http::Status, serde::json::Json, Request};
-use slink_common::{types::{AppConfig, RequestId}, ApiError, ApiResult};
+use slink_common::{types::{AppConfig, DatabaseConfig, RequestId}, ApiError, ApiResult};
+use util::fairings::SessionFairing;
+mod util;
+mod controllers;
+mod models;
 
 #[macro_use] extern crate rocket;
 
@@ -16,10 +21,20 @@ fn handle_error(status: Status, request: &Request) -> ApiError {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build()
-        .mount("/", routes![index])
+    let rocket = rocket::build();
+    let config: AppConfig = rocket.figment().extract_inner("slink").expect("No application config (<profile>.slink) configured.");
+    
+    match config.database {
+        DatabaseConfig::Options { options, database } => Client::connect_with_options(options, database),
+        DatabaseConfig::Uri { uri, database } => Client::connect_with_uri(uri, database)
+    }.expect("Failed to connect to specified database.").as_global();
+
+    println!("{:?}", Client::global());
+
+    rocket.mount("/", routes![index])
         .attach(AdHoc::on_request("Attach Request ID", |req, _| Box::pin(async move {
             req.local_cache(|| RequestId::new());
         })))
+        .attach(SessionFairing)
         .register("/", catchers![handle_error])
 }
