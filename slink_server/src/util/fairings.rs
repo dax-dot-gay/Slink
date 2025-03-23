@@ -1,5 +1,4 @@
-use std::str::FromStr;
-
+use bson::Uuid;
 use chrono::Utc;
 use manor::{Collection, Model};
 use rocket::{
@@ -8,7 +7,6 @@ use rocket::{
     http::Cookie,
 };
 use slink_common::types::AppConfig;
-use uuid::Uuid;
 
 use crate::models::Session;
 
@@ -29,8 +27,8 @@ impl Fairing for SessionFairing {
             .figment()
             .extract_inner::<AppConfig>("slink")
             .unwrap();
-        if let Some(token) = req.cookies().get_private("slink.token") {
-            if let Ok(id) = Uuid::from_str(token.value()) {
+        if let Some(token) = req.cookies().get("slink.token") {
+            if let Ok(id) = Uuid::parse_str(token.value()) {
                 if let Ok(Some(existing)) = Collection::<Session>::new().get(id).await {
                     if existing.last_connection + config.authentication.session_max_lifetime
                         >= Utc::now()
@@ -46,7 +44,6 @@ impl Fairing for SessionFairing {
 
         let new_session = req.local_cache(|| Session::create());
         new_session.save().await.unwrap();
-        println!("{new_session:?}");
         return;
     }
 

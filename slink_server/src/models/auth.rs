@@ -1,13 +1,13 @@
 use chrono::{DateTime, Utc};
 use manor::{Link, schema};
 use slink_common::ApiResult;
-use uuid::Uuid;
+use bson::Uuid;
 
 use crate::util::security::HashedPassword;
 
 #[schema(collection = "sessions")]
 pub struct Session {
-    #[field(id = Uuid::new_v4)]
+    #[field(id = Uuid::new)]
     pub id: Uuid,
 
     pub created: DateTime<Utc>,
@@ -20,7 +20,7 @@ pub struct Session {
 impl Session {
     pub fn create() -> Self {
         Session {
-            id: Uuid::new_v4(),
+            id: Uuid::new(),
             created: Utc::now(),
             last_connection: Utc::now(),
             user: None,
@@ -31,7 +31,7 @@ impl Session {
 
 #[schema(collection = "users")]
 pub struct User {
-    #[field(id = Uuid::new_v4)]
+    #[field(id = Uuid::new)]
     pub id: Uuid,
     pub username: String,
     pub hashed_password: HashedPassword,
@@ -40,7 +40,7 @@ pub struct User {
 impl User {
     pub fn create(username: impl Into<String>, password: impl Into<String>) -> ApiResult<Self> {
         Ok(Self {
-            id: Uuid::new_v4(),
+            id: Uuid::new(),
             username: username.into(),
             hashed_password: HashedPassword::new(password)?,
             _collection: None,
