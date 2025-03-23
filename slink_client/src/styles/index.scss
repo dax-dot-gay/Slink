@@ -1,0 +1,87 @@
+* {
+    --input-bg: var(--mantine-color-default) !important;
+}
+
+/* For dark mode */
+:root[data-mantine-color-scheme="dark"] {
+    --mantine-color-default-border: #4d504d !important;
+    --mantine-color-default-hover: #242723 !important;
+    --mantine-color-default: #171a18 !important;
+    --mantine-color-body: #0c0c0c !important;
+}
+
+body {
+    overflow: hidden;
+}
+
+.paper-light {
+    background-color: var(--mantine-color-default-hover) !important;
+}
+
+.dark-input * {
+    --input-bg: var(--mantine-color-body) !important;
+}
+
+.subtle-input {
+    &.mantine-InputWrapper-root.mantine-TextInput-root {
+        padding: 0px !important;
+    }
+    & * {
+        --input-bg: #00000000 !important;
+        &:hover {
+            --input-bg: var(--mantine-color-default) !important;
+        }
+    }
+
+    & input {
+        line-height: unset;
+        min-height: auto;
+        height: auto;
+        padding: 2px;
+        padding-left: 6px;
+    }
+}
+
+.mantine-ScrollArea-thumb {
+    z-index: 1000;
+}
+
+.mantine-Popover-dropdown {
+    background-color: var(--mantine-color-default-hover) !important;
+    --popover-border-color: var(--mantine-color-default-border) !important;
+}
+
+.mantine-Select-option,
+.mantine-MultiSelect-option {
+    &:hover {
+        background-color: var(--mantine-color-default-border) !important;
+    }
+}
+
+.readonly-input * {
+    cursor: pointer !important;
+}
+
+.mantine-Accordion-item {
+    background-color: var(--mantine-color-default) !important;
+
+    &[data-active="true"] {
+        background-color: var(--mantine-color-default) !important;
+        border-color: var(--mantine-color-default-border) !important;
+    }
+
+    &.light-accordion {
+        background-color: var(--mantine-color-default-hover) !important;
+
+        &[data-active="true"] {
+            background-color: var(--mantine-color-default-hover) !important;
+            border-color: var(--mantine-color-default-border) !important;
+        }
+    }
+}
+
+.layout-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}

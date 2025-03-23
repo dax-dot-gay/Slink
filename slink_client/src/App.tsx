@@ -1,25 +1,20 @@
 import "@mantine/core/styles.css";
-import {
-  AppShell,
-  MantineProvider,
-  TypographyStylesProvider,
-} from "@mantine/core";
-import { shadcnCssVariableResolver } from "./util/theme/cssVariableResolver.ts";
-import { shadcnTheme } from "./util/theme/theme.ts";
-import "./util/theme/style.css";
+import { MantineProvider, TypographyStylesProvider } from "@mantine/core";
+import { Router } from "./util/routes.tsx";
+import { LocalizationProvider } from "./util/localization.tsx";
+import { theme } from "./util/theme.ts";
+import "./styles/index.scss";
 
 function App() {
-  return (
-    <MantineProvider
-      theme={shadcnTheme}
-      cssVariablesResolver={shadcnCssVariableResolver}
-      defaultColorScheme="dark"
-    >
-      <TypographyStylesProvider>
-        <AppShell>TEST</AppShell>
-      </TypographyStylesProvider>
-    </MantineProvider>
-  );
+    return (
+        <LocalizationProvider>
+            <MantineProvider theme={theme} defaultColorScheme="dark">
+                <TypographyStylesProvider>
+                    <Router />
+                </TypographyStylesProvider>
+            </MantineProvider>
+        </LocalizationProvider>
+    );
 }
 
 export default App;

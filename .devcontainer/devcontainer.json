@@ -42,7 +42,9 @@
         "stivo.tailwind-fold",
         "vunguyentuan.vscode-css-variables",
         "jawandarajbir.react-vscode-extension-pack",
-        "lokalise.i18n-ally"
+        "lokalise.i18n-ally",
+        "afzalsayed96.icones",
+        "antfu.iconify"
       ]
     }
   },

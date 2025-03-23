@@ -1,0 +1,9 @@
+{
+  "lex": {
+    "appName": "Slink",
+    "appSub": "Server Manager"
+  },
+  "action": {
+    "logout": "Log Out"
+  }
+}
