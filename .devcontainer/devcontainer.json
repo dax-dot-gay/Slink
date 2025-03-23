@@ -37,8 +37,12 @@
         "esbenp.prettier-vscode",
         "jinxdash.prettier-rust",
         "fill-labs.dependi",
-        "suhelmakkad.shadcn-ui",
-        "nrjdalal.shadcn-ui-next"
+        "nrjdalal.shadcn-ui-next",
+        "bradlc.vscode-tailwindcss",
+        "stivo.tailwind-fold",
+        "vunguyentuan.vscode-css-variables",
+        "jawandarajbir.react-vscode-extension-pack",
+        "lokalise.i18n-ally"
       ]
     }
   },
