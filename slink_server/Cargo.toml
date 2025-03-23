@@ -22,4 +22,7 @@ mongodb = "3.2.3"
 orion = { version = "0.17.9", features = ["serde"] }
 chrono = { version = "0.4.40", features = ["serde"] }
 bson = { version = "2.14.0", features = ["chrono", "uuid-1", "serde_with"] }
+schemars = { version = "0.8.22", features = ["bytes", "chrono", "uuid"] }
+okapi = { version = "0.7.0", features = ["impl_json_schema", "preserve_order"] }
+rocket_okapi = { version = "0.9.0", features = ["secrets", "rapidoc", "uuid", "preserve_order", "rocket_ws"] }
 
