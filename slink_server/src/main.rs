@@ -2,6 +2,7 @@ use futures::executor::block_on;
 use manor::Client;
 use rocket::{fairing::AdHoc, http::Status, serde::json::Json, Request};
 use slink_common::{types::{AppConfig, DatabaseConfig, RequestId}, ApiError, ApiResult};
+use ts_rs::TS;
 use util::fairings::SessionFairing;
 mod util;
 mod controllers;

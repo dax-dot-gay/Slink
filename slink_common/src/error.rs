@@ -41,7 +41,11 @@ pub enum ApiError {
 
     #[error("Encountered a cryptographic error: {0}")]
     #[response(status = 400)]
-    CryptographicError(String)
+    CryptographicError(String),
+
+    #[error("Incorrect username or password")]
+    #[response(status = 404)]
+    BadLogin(())
 }
 
 impl ApiError {
@@ -53,6 +57,10 @@ impl ApiError {
         request.local_cache(|| self.clone());
         let status = self.clone().respond_to(request).and_then(|r| Ok(r.status())).or_else(|s| Ok::<_, Self>(s)).unwrap();
         request::Outcome::<T, Self>::Error((status, self.clone()))
+    }
+
+    pub fn bad_login() -> Self {
+        Self::BadLogin(())
     }
 }
 
