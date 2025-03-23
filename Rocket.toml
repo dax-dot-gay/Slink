@@ -21,3 +21,9 @@ mode = "docker_host"
 network = "slink"
 user = 1000
 group = 1000
+
+[debug.slink]
+admin_user = [
+    "admin",
+    "admin"
+]

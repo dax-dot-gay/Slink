@@ -10,7 +10,7 @@ bytes = { version = "1.10.1", features = ["serde"] }
 bytesize = { version = "2.0.1", features = ["serde"] }
 chrono = { version = "0.4.40", features = ["serde"] }
 futures = "0.3.31"
-manor = "0.2.4"
+manor = "0.2.5"
 mongodb = "3.2.3"
 rocket = { version = "0.5.1", features = ["json", "secrets", "tls", "uuid"] }
 serde = { version = "1.0.219", features = ["derive"] }
@@ -20,3 +20,6 @@ strfmt = "0.2.4"
 thiserror = "2.0.12"
 tokio = { version = "1.44.1", features = ["full"] }
 uuid = { version = "1.16.0", features = ["v4", "fast-rng", "serde"] }
+rocket_okapi = {version = "0.9.0", features = ["preserve_order", "rapidoc", "uuid", "secrets", "rocket_ws"]}
+okapi = {version = "0.7.0", features = ["impl_json_schema", "preserve_order"]}
+schemars = {version = "0.8.22", features = ["preserve_order", "uuid1", "chrono", "bytes"]}

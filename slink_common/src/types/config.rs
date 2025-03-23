@@ -73,7 +73,9 @@ pub struct AppConfig {
     pub runner: RunnerConfig,
 
     #[serde(default)]
-    pub authentication: AuthenticationConfig
+    pub authentication: AuthenticationConfig,
+    #[serde(default)]
+    pub admin_user: Option<(String, String)>
 }
 
 #[async_trait::async_trait]

@@ -1,9 +1,9 @@
 use bson::Bson;
 use manor::{Link, Model};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
-#[derive(TS, Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, JsonSchema)]
 pub struct TSLink {
     pub collection: String,
     pub id: String,

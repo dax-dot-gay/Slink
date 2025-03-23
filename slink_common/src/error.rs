@@ -1,5 +1,20 @@
-use rocket::{request, response::Responder, serde::json::Json, Request};
+use okapi::openapi3::{RefOr, Responses, Response as OpenApiResponse};
+use rocket::{request, response::Responder, Request};
+use rocket_okapi::response::OpenApiResponderInner;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+macro_rules! response {
+    ($target:ident, $code:literal, $desc:expr) => {
+        $target.insert(
+            $code.to_string(),
+            RefOr::Object(OpenApiResponse {
+                description: concat!("# [Error ", $code, "](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/", $code, ")\n", $desc).to_string(),
+                ..Default::default()
+            })
+        );
+    };
+}
 
 #[derive(thiserror::Error, Clone, Debug, Serialize, Deserialize)]
 pub enum Error {
@@ -24,7 +39,7 @@ impl Error {
 pub type Res<T> = Result<T, Error>;
 
 
-#[derive(thiserror::Error, Clone, Debug, Responder)]
+#[derive(thiserror::Error, Clone, Debug, Responder, JsonSchema)]
 #[response(content_type = "application/json")]
 pub enum ApiError {
     #[error("Encountered an uncaught error: {0:?}")]
@@ -33,7 +48,7 @@ pub enum ApiError {
 
     #[error("Encountered an unexpected internal error: {0:?}")]
     #[response(status = 500)]
-    Internal(Json<Error>),
+    Internal(String),
 
     #[error("Configuration error: {0}")]
     #[response(status = 500)]
@@ -66,7 +81,18 @@ impl ApiError {
 
 impl From<Error> for ApiError {
     fn from(value: Error) -> Self {
-        Self::Internal(Json(value))
+        Self::Internal(value.to_string())
+    }
+}
+
+impl OpenApiResponderInner for ApiError {
+    fn responses(_: &mut rocket_okapi::r#gen::OpenApiGenerator) -> rocket_okapi::Result<okapi::openapi3::Responses> {
+        let mut items = rocket_okapi::okapi::schemars::Map::new();
+        response!(items, 400, "An error occurred while trying to parse the user's request.");
+        response!(items, 404, "Requested resource not found");
+        response!(items, 500, "Internal server error occurred while processing request.");
+
+        Ok(Responses { responses: items, ..Default::default() })
     }
 }
 
