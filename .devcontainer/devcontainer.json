@@ -36,7 +36,9 @@
         "mongodb.mongodb-vscode",
         "esbenp.prettier-vscode",
         "jinxdash.prettier-rust",
-        "fill-labs.dependi"
+        "fill-labs.dependi",
+        "suhelmakkad.shadcn-ui",
+        "nrjdalal.shadcn-ui-next"
       ]
     }
   },
