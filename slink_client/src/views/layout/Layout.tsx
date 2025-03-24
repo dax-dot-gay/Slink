@@ -1,4 +1,6 @@
 import {
+    Button,
+    Collapse,
     ActionIcon,
     AppShell,
     Avatar,
@@ -10,12 +12,16 @@ import {
     Stack,
     Text,
     useMantineTheme,
+    AccordionChevron,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import {
+    TbAffiliate,
+    TbChevronDown,
     TbChevronsLeft,
     TbCube,
     TbLogout2,
+    TbServer,
     TbSettings,
     TbShield,
     TbUser,
@@ -39,6 +45,9 @@ export function LayoutView() {
     const user = useUser();
     const apiState = useApiState();
     const reload = useReload();
+
+    const [servers, { toggle: toggleServers }] = useDisclosure(true);
+    const [proxies, { toggle: toggleProxies }] = useDisclosure(true);
 
     useEffect(() => {
         if (
@@ -114,7 +123,22 @@ export function LayoutView() {
                             <TbChevronsLeft />
                         </ActionIcon>
                     </Group>
-                    <Stack gap="sm" p="sm" style={{ flexGrow: 1 }}></Stack>
+                    <Stack gap="sm" p="sm" style={{ flexGrow: 1 }}>
+                        <Button
+                            variant={servers ? "light" : "subtle"}
+                            leftSection={<TbServer size={20} />}
+                            justify="start"
+                        >
+                            <Group
+                                gap="sm"
+                                justify="space-between"
+                                style={{ width: "200%" }}
+                            >
+                                {t("nav.servers")}
+                                <TbChevronDown />
+                            </Group>
+                        </Button>
+                    </Stack>
                     <Divider />
                     <Group
                         gap="sm"

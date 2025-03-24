@@ -22,5 +22,9 @@
       "passwordLabel": "Password",
       "error": "Failed to login."
     }
+  },
+  "nav": {
+    "servers": "Servers",
+    "proxies": "Proxies"
   }
 }
