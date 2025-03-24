@@ -12,12 +12,13 @@ import {
     Stack,
     Text,
     useMantineTheme,
-    AccordionChevron,
+    Space,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import {
     TbAffiliate,
     TbChevronDown,
+    TbChevronRight,
     TbChevronsLeft,
     TbCube,
     TbLogout2,
@@ -25,6 +26,7 @@ import {
     TbSettings,
     TbShield,
     TbUser,
+    TbX,
 } from "react-icons/tb";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { Outlet, useLocation, useNavigate } from "react-router";
@@ -123,21 +125,67 @@ export function LayoutView() {
                             <TbChevronsLeft />
                         </ActionIcon>
                     </Group>
-                    <Stack gap="sm" p="sm" style={{ flexGrow: 1 }}>
+                    <Stack gap={0} p="sm" style={{ flexGrow: 1 }}>
                         <Button
                             variant={servers ? "light" : "subtle"}
                             leftSection={<TbServer size={20} />}
+                            rightSection={
+                                servers ? <TbChevronDown /> : <TbChevronRight />
+                            }
                             justify="start"
+                            className="nav-section-button"
+                            onClick={toggleServers}
+                            size="md"
                         >
-                            <Group
-                                gap="sm"
-                                justify="space-between"
-                                style={{ width: "200%" }}
-                            >
-                                {t("nav.servers")}
-                                <TbChevronDown />
-                            </Group>
+                            {t("nav.servers")}
                         </Button>
+                        <Collapse in={servers} pt="sm">
+                            <Stack
+                                gap="sm"
+                                p={0}
+                                pl="xs"
+                                ml="xs"
+                                style={{
+                                    borderLeft:
+                                        "solid 1px var(--mantine-color-default-border)",
+                                }}
+                            ></Stack>
+                        </Collapse>
+                        <Space h="sm" />
+                        <Button
+                            variant={proxies ? "light" : "subtle"}
+                            leftSection={<TbAffiliate size={20} />}
+                            rightSection={
+                                proxies ? <TbChevronDown /> : <TbChevronRight />
+                            }
+                            justify="start"
+                            className="nav-section-button"
+                            onClick={toggleProxies}
+                            size="md"
+                        >
+                            {t("nav.proxies")}
+                        </Button>
+                        <Collapse in={proxies} pt="sm">
+                            <Stack
+                                gap="sm"
+                                p={0}
+                                pl="xs"
+                                ml="xs"
+                                style={{
+                                    borderLeft:
+                                        "solid 1px var(--mantine-color-default-border)",
+                                }}
+                            >
+                                <Paper className="paper-light" p="xs">
+                                    <Group gap="sm" justify="space-between">
+                                        <TbX size={20} />
+                                        <Text c="dimmed" size="sm">
+                                            {t("nav.noProxies")}
+                                        </Text>
+                                    </Group>
+                                </Paper>
+                            </Stack>
+                        </Collapse>
                     </Stack>
                     <Divider />
                     <Group

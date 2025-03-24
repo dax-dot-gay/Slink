@@ -25,6 +25,7 @@
   },
   "nav": {
     "servers": "Servers",
-    "proxies": "Proxies"
+    "proxies": "Proxies",
+    "noProxies": "No Proxies"
   }
 }
