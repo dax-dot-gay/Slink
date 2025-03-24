@@ -32,19 +32,14 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "rust-lang.rust-analyzer",
-        "mongodb.mongodb-vscode",
-        "esbenp.prettier-vscode",
-        "jinxdash.prettier-rust",
-        "fill-labs.dependi",
-        "nrjdalal.shadcn-ui-next",
-        "bradlc.vscode-tailwindcss",
-        "stivo.tailwind-fold",
-        "vunguyentuan.vscode-css-variables",
-        "jawandarajbir.react-vscode-extension-pack",
-        "lokalise.i18n-ally",
-        "afzalsayed96.icones",
-        "antfu.iconify"
+          "rust-lang.rust-analyzer",
+          "mongodb.mongodb-vscode",
+          "esbenp.prettier-vscode",
+          "jinxdash.prettier-rust",
+          "fill-labs.dependi",
+          "vunguyentuan.vscode-css-variables",
+          "jawandarajbir.react-vscode-extension-pack",
+          "lokalise.i18n-ally"
       ]
     }
   },

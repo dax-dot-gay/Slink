@@ -7,7 +7,6 @@ import {
     Divider,
     Group,
     Paper,
-    Skeleton,
     Stack,
     Text,
     useMantineTheme,
@@ -18,10 +17,14 @@ import {
     TbCube,
     TbLogout2,
     TbSettings,
+    TbShield,
     TbUser,
 } from "react-icons/tb";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { Outlet } from "react-router";
+import { Outlet, useLocation, useNavigate } from "react-router";
+import { useApiState, useReload, useUser } from "../../components/contexts/api";
+import { useEffect } from "react";
+import { logout } from "../../lib/api";
 
 export function LayoutView() {
     const { t } = useTranslation();
@@ -31,20 +34,43 @@ export function LayoutView() {
         false
     );
     const [collapsed, { toggle }] = useDisclosure(false);
+    const nav = useNavigate();
+    const location = useLocation();
+    const user = useUser();
+    const apiState = useApiState();
+    const reload = useReload();
+
+    useEffect(() => {
+        if (
+            apiState === "ready" &&
+            user === null &&
+            location.pathname !== "/auth"
+        ) {
+            nav("/auth");
+        }
+    }, [apiState, user?.id, location.pathname]);
+
     return (
         <AppShell
             layout="alt"
             navbar={{
                 width: 312,
                 breakpoint: "sm",
-                collapsed: { desktop: false, mobile: collapsed },
+                collapsed: {
+                    desktop: location.pathname === "/auth" ? true : false,
+                    mobile: location.pathname === "/auth" ? true : collapsed,
+                },
             }}
             header={{ height: 72 }}
         >
             <AppShell.Header hiddenFrom="sm">
                 <Group gap="sm" h="100%" pl="sm">
-                    <Burger opened={!collapsed} onClick={toggle} />
-                    <Divider orientation="vertical" />
+                    {location.pathname !== "/auth" && (
+                        <>
+                            <Burger opened={!collapsed} onClick={toggle} />
+                            <Divider orientation="vertical" />
+                        </>
+                    )}
                     <TbCube size={24} />
                     <Text size="xl" m={0}>
                         {t("lex.appName")}
@@ -98,19 +124,26 @@ export function LayoutView() {
                     >
                         <Group gap="sm" wrap="nowrap" style={{ flexGrow: 1 }}>
                             <Avatar>
-                                <TbUser size={20} />
+                                {user?.superuser ? (
+                                    <TbShield size={20} />
+                                ) : (
+                                    <TbUser size={20} />
+                                )}
                             </Avatar>
-                            <Skeleton
-                                animate={false}
-                                style={{ flexGrow: 1 }}
-                                h="32px"
-                            />
+                            <Text>{user?.username}</Text>
                         </Group>
                         <Group gap="xs">
                             <ActionIcon radius="sm" variant="light" size="lg">
                                 <TbSettings />
                             </ActionIcon>
-                            <ActionIcon radius="sm" variant="light" size="lg">
+                            <ActionIcon
+                                radius="sm"
+                                variant="light"
+                                size="lg"
+                                onClick={() => {
+                                    logout().then(() => reload());
+                                }}
+                            >
                                 <TbLogout2 />
                             </ActionIcon>
                         </Group>

@@ -32,7 +32,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
             ))
         })
         .level(log::LevelFilter::Debug)
-        .level_for("rocket", log::LevelFilter::Warn)
+        //.level_for("rocket", log::LevelFilter::Warn)
         .chain(std::io::stdout())
         .apply()?;
     Ok(())

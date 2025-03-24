@@ -20,6 +20,7 @@ pub async fn login(mut session: Session, login: Json<LoginModel>) -> ApiResult<J
     if let Some(user) = User::from_username(login.username.clone()).await {
         if user.hashed_password.verify(login.password.clone()) {
             session.user = Some(Link::from(user.clone()));
+            println!("{:?}", session.user);
             session.save().await.or_else(|e| Err::<_, ApiError>(Error::Unexpected(e.to_string()).into()))?;
 
             return Ok(Json(user.redact()));

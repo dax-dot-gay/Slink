@@ -4,6 +4,23 @@
     "appSub": "Server Manager"
   },
   "action": {
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "login": "Log In"
+  },
+  "common": {
+    "error": {
+      "requiredField": "This field is required."
+    },
+    "notif": {
+      "success": "Success!",
+      "error": "An Error Occurred:"
+    }
+  },
+  "views": {
+    "auth": {
+      "usernameLabel": "Username",
+      "passwordLabel": "Password",
+      "error": "Failed to login."
+    }
   }
 }
