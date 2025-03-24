@@ -6,22 +6,24 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use slink_common::types::{AppConfig, RunnerMode};
 
-use crate::models::Session;
+use crate::models::{OptionalUser, RedactedUser, Session};
 
 pub mod authentication;
 
 #[derive(JsonSchema, Serialize, Deserialize, Clone, Debug)]
 pub struct IndexInfo {
     pub session: Session,
-    pub runner_mode: RunnerMode
+    pub runner_mode: RunnerMode,
+    pub user: Option<RedactedUser>
 }
 
 #[openapi]
 #[get("/")]
-async fn get_index(session: Session, config: AppConfig) -> Json<IndexInfo> {
+async fn get_index(session: Session, config: AppConfig, user: OptionalUser) -> Json<IndexInfo> {
     Json(IndexInfo {
         session: session.clone(),
-        runner_mode: config.runner.mode()
+        runner_mode: config.runner.mode(),
+        user: user.redacted()
     })
 }
 

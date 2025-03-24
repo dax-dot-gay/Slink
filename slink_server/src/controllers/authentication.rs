@@ -29,6 +29,14 @@ pub async fn login(mut session: Session, login: Json<LoginModel>) -> ApiResult<J
     Err(ApiError::bad_login())
 }
 
+#[openapi(tag = "Authentication")]
+#[delete("/login")]
+pub async fn logout(mut session: Session, _user: User) -> ApiResult<()> {
+    session.user = None;
+    let _ = session.save().await;
+    Ok(())
+}
+
 pub fn routes() -> (Vec<rocket::Route>, OpenApi) {
-    openapi_get_routes_spec![login]
+    openapi_get_routes_spec![login, logout]
 }

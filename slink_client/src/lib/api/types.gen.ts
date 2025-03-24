@@ -3,6 +3,7 @@
 export type IndexInfo = {
     session: Session;
     runner_mode: RunnerMode;
+    user?: RedactedUser | null;
 };
 
 export type Session = {
@@ -43,6 +44,40 @@ export type GetIndexResponses = {
 
 export type GetIndexResponse = GetIndexResponses[keyof GetIndexResponses];
 
+export type LogoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/login';
+};
+
+export type LogoutErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type LogoutResponses = {
+    200: unknown;
+};
+
 export type LoginData = {
     body: LoginModel;
     path?: never;
@@ -56,6 +91,11 @@ export type LoginErrors = {
      * An error occurred while trying to parse the user's request.
      */
     400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
     /**
      * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
      * Requested resource not found

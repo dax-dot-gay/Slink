@@ -28,3 +28,9 @@ impl HashedPassword {
         }
     }
 }
+
+impl Into<String> for HashedPassword {
+    fn into(self) -> String {
+        self.0.clone()
+    }
+}

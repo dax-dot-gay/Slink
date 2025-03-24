@@ -1,6 +1,9 @@
+use std::ops::{Deref, DerefMut};
+
 use chrono::{DateTime, Utc};
 use manor::{schema, Collection, Link};
 use rocket::request::{self, FromRequest};
+use rocket::Request;
 use rocket_okapi::OpenApiFromRequest;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -51,10 +54,14 @@ impl<'r> FromRequest<'r> for Session {
 }
 
 #[schema(collection = "users")]
+#[derive(JsonSchema, OpenApiFromRequest)]
 pub struct User {
     #[field(id = Uuid::new)]
+    #[schemars(with = "uuid::Uuid")]
     pub id: Uuid,
     pub username: String,
+
+    #[schemars(with = "String")]
     pub hashed_password: HashedPassword,
 
     #[serde(default)]
@@ -96,5 +103,73 @@ impl User {
 
     pub async fn from_username(username: impl Into<String>) -> Option<User> {
         Collection::<Self>::new().find_one(doc! {"username": Into::<String>::into(username)}).await.unwrap_or(None)
+    }
+}
+
+#[async_trait]
+impl<'r> FromRequest<'r> for User {
+    type Error = ApiError;
+
+    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        if let request::Outcome::Success(session) = req.guard::<Session>().await {
+            if let Some(mut link) = session.user {
+                if let Ok(user) = link.resolve().await {
+                    return request::Outcome::Success(user.clone());
+                }
+            }
+
+            ApiError::missing_auth("requires_login").respond(&req)
+        } else {
+            ApiError::missing_auth("requires_token").respond(&req)
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema, OpenApiFromRequest)]
+pub struct OptionalUser(Option<User>);
+
+impl OptionalUser {
+    pub fn some(user: User) -> Self {
+        Self(Some(user))
+    }
+
+    pub fn none() -> Self {
+        Self(None)
+    }
+
+    pub fn redacted(&self) -> Option<RedactedUser> {
+        self.0.clone().and_then(|u| Some(u.redact()))
+    }
+}
+
+impl Deref for OptionalUser {
+    type Target = Option<User>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for OptionalUser {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+#[async_trait]
+impl<'r> FromRequest<'r> for OptionalUser {
+    type Error = ApiError;
+
+    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        if let request::Outcome::Success(session) = req.guard::<Session>().await {
+            if let Some(mut link) = session.user {
+                if let Ok(user) = link.resolve().await {
+                    return request::Outcome::Success(Self::some(user.clone()));
+                }
+            }
+
+            request::Outcome::Success(Self::none())
+        } else {
+            ApiError::missing_auth("requires_token").respond(&req)
+        }
     }
 }

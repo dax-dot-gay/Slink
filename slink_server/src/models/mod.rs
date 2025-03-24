@@ -1,3 +1,3 @@
 mod auth;
 
-pub use auth::{Session, User, RedactedUser};
+pub use auth::{Session, User, RedactedUser, OptionalUser};

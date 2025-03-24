@@ -60,7 +60,11 @@ pub enum ApiError {
 
     #[error("Incorrect username or password")]
     #[response(status = 404)]
-    BadLogin(())
+    BadLogin(()),
+
+    #[error("Missing authorization resources: {0}")]
+    #[response(status = 401)]
+    MissingAuthorization(String)
 }
 
 impl ApiError {
@@ -77,6 +81,10 @@ impl ApiError {
     pub fn bad_login() -> Self {
         Self::BadLogin(())
     }
+
+    pub fn missing_auth(context: impl AsRef<str>) -> Self {
+        Self::MissingAuthorization(context.as_ref().to_string())
+    }
 }
 
 impl From<Error> for ApiError {
@@ -91,6 +99,7 @@ impl OpenApiResponderInner for ApiError {
         response!(items, 400, "An error occurred while trying to parse the user's request.");
         response!(items, 404, "Requested resource not found");
         response!(items, 500, "Internal server error occurred while processing request.");
+        response!(items, 401, "User is not authorized to perform this request.");
 
         Ok(Responses { responses: items, ..Default::default() })
     }
