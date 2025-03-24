@@ -2,6 +2,7 @@
 [default]
 address = "0.0.0.0"
 limits = { form = "1 MiB", json = "1 MiB", file = "4 GB" }
+cli_colors = false
 
 [default.tls]
 certs = "/slink/certificates/server/slink.crt"

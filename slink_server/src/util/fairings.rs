@@ -33,7 +33,7 @@ impl Fairing for SessionFairing {
                     if existing.last_connection + config.authentication.session_max_lifetime
                         >= Utc::now()
                     {
-                        req.local_cache(|| existing);
+                        req.local_cache(|| Some(existing));
                         return;
                     } else {
                         let _ = existing.delete().await;
@@ -42,13 +42,13 @@ impl Fairing for SessionFairing {
             }
         }
 
-        let new_session = req.local_cache(|| Session::create());
+        let new_session = req.local_cache(|| Some(Session::create())).clone().unwrap();
         new_session.save().await.unwrap();
         return;
     }
 
     async fn on_response<'r>(&self, req: &'r Request<'_>, res: &mut Response<'r>) {
-        let mut session = req.local_cache(|| Session::create()).clone();
+        let mut session = req.local_cache(|| Some(Session::create())).clone().unwrap();
         session.last_connection = Utc::now();
         session.save().await.unwrap();
         res.set_header(Cookie::new("slink.token", session.id.to_string()));

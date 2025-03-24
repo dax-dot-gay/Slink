@@ -5,6 +5,8 @@ use rocket::{
     Request,
     request::{self, FromRequest},
 };
+use rocket_okapi::OpenApiFromRequest;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{ApiError, runners::docker_host::DockerHostRunnerOptions};
@@ -20,6 +22,12 @@ pub enum DatabaseConfig {
         options: ClientOptions,
         database: String,
     },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum RunnerMode {
+    DockerHost
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -52,6 +60,12 @@ impl RunnerConfig {
             None
         }
     }
+
+    pub fn mode(&self) -> RunnerMode {
+        match self {
+            Self::DockerHost { .. } => RunnerMode::DockerHost
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -67,7 +81,7 @@ impl Default for AuthenticationConfig {
     }
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, OpenApiFromRequest)]
 pub struct AppConfig {
     pub database: DatabaseConfig,
     pub runner: RunnerConfig,
