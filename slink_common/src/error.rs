@@ -1,10 +1,11 @@
 use std::fmt::Debug;
 
-use okapi::openapi3::{RefOr, Responses, Response as OpenApiResponse};
-use rocket::{request, response::Responder, serde::json::Json, Request};
+use okapi::openapi3::{RefOr, Response as OpenApiResponse, Responses};
+use reqwest::StatusCode;
+use rocket::{Request, request, response::Responder, serde::json::Json};
 use rocket_okapi::response::OpenApiResponderInner;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::providers::error::{ProviderError, ProviderType};
 
@@ -13,9 +14,17 @@ macro_rules! response {
         $target.insert(
             $code.to_string(),
             RefOr::Object(OpenApiResponse {
-                description: concat!("# [Error ", $code, "](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/", $code, ")\n", $desc).to_string(),
+                description: concat!(
+                    "# [Error ",
+                    $code,
+                    "](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/",
+                    $code,
+                    ")\n",
+                    $desc
+                )
+                .to_string(),
                 ..Default::default()
-            })
+            }),
         );
     };
 }
@@ -30,26 +39,37 @@ pub enum Error {
         scope: String,
         runner: String,
         id: String,
-        reason: String
+        reason: String,
     },
 
     #[error("The provided value <{value}> was invalid: {reason}")]
-    ValueError {
-        value: String,
-        reason: String
-    },
-
-    #[error("Encountered an issue requesting {url}: {reason}")]
-    RequestError {
-        url: String,
-        reason: String
-    },
+    ValueError { value: String, reason: String },
 
     #[error("An error occured in the {provider_type}.{provider_name}: {error:?}")]
     ProviderError {
         provider_type: ProviderType,
         provider_name: String,
-        error: ProviderError
+        error: ProviderError,
+    },
+
+    #[error("Encountered an error dispatching a network request: {0}")]
+    RequestDispatchError(String),
+
+    #[error("Received an error response from {url} with status {status}: {reason}")]
+    RequestResponseError {
+        url: String,
+        status: String,
+        reason: String,
+    },
+
+    #[error("Failed to parse response data: {0}")]
+    ResponseParsingError(String),
+
+    #[error("Failed to get {path} in {data}: {reason}")]
+    DataPathError {
+        path: String,
+        data: String,
+        reason: String
     }
 }
 
@@ -59,20 +79,48 @@ impl Error {
     }
 
     pub fn value_error(value: impl Debug, error: impl Debug) -> Self {
-        Self::ValueError { value: format!("{value:?}"), reason: format!("{error:?}") }
+        Self::ValueError {
+            value: format!("{value:?}"),
+            reason: format!("{error:?}"),
+        }
     }
 
-    pub fn request_error(error: reqwest::Error) -> Self {
-        Self::RequestError { url: error.url().and_then(|u| Some(u.to_string())).unwrap_or(String::from("UNKNOWN")), reason: error.to_string() }
+    pub fn provider_error(
+        provider_type: ProviderType,
+        provider_name: impl AsRef<str>,
+        error: ProviderError,
+    ) -> Self {
+        Self::ProviderError {
+            provider_type,
+            provider_name: provider_name.as_ref().to_string(),
+            error,
+        }
     }
 
-    pub fn provider_error(provider_type: ProviderType, provider_name: impl AsRef<str>, error: ProviderError) -> Self {
-        Self::ProviderError { provider_type, provider_name: provider_name.as_ref().to_string(), error }
+    pub fn response(result: Result<reqwest::Response, reqwest::Error>) -> Res<reqwest::Response> {
+        result.or_else(|e| {
+            Err(Self::RequestDispatchError(e.to_string()))
+        })?.error_for_status().or_else(|e| {
+            Err(Self::RequestResponseError {
+                url: e
+                    .url()
+                    .and_then(|u| Some(u.to_string()))
+                    .unwrap_or(String::from("UNKNOWN URL")),
+                status: e
+                    .status()
+                    .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+                    .to_string(),
+                reason: e.to_string(),
+            })
+        })
+    }
+
+    pub async fn response_as<T: DeserializeOwned>(result: Result<reqwest::Response, reqwest::Error>) -> Res<T> {
+        Self::response(result)?.json::<T>().await.or_else(|e| Err(Self::ResponseParsingError(e.to_string())))
     }
 }
 
 pub type Res<T> = Result<T, Error>;
-
 
 #[derive(thiserror::Error, Clone, Debug, Responder, JsonSchema)]
 #[response(content_type = "application/json")]
@@ -100,7 +148,7 @@ pub enum ApiError {
 
     #[error("Missing authorization resources: {0}")]
     #[response(status = 401)]
-    MissingAuthorization(String)
+    MissingAuthorization(String),
 }
 
 impl ApiError {
@@ -110,7 +158,12 @@ impl ApiError {
 
     pub fn respond<'r, T>(&self, request: &'r Request) -> request::Outcome<T, Self> {
         request.local_cache(|| self.clone());
-        let status = self.clone().respond_to(request).and_then(|r| Ok(r.status())).or_else(|s| Ok::<_, Self>(s)).unwrap();
+        let status = self
+            .clone()
+            .respond_to(request)
+            .and_then(|r| Ok(r.status()))
+            .or_else(|s| Ok::<_, Self>(s))
+            .unwrap();
         request::Outcome::<T, Self>::Error((status, self.clone()))
     }
 
@@ -130,14 +183,31 @@ impl From<Error> for ApiError {
 }
 
 impl OpenApiResponderInner for ApiError {
-    fn responses(_: &mut rocket_okapi::r#gen::OpenApiGenerator) -> rocket_okapi::Result<okapi::openapi3::Responses> {
+    fn responses(
+        _: &mut rocket_okapi::r#gen::OpenApiGenerator,
+    ) -> rocket_okapi::Result<okapi::openapi3::Responses> {
         let mut items = rocket_okapi::okapi::schemars::Map::new();
-        response!(items, 400, "An error occurred while trying to parse the user's request.");
+        response!(
+            items,
+            400,
+            "An error occurred while trying to parse the user's request."
+        );
         response!(items, 404, "Requested resource not found");
-        response!(items, 500, "Internal server error occurred while processing request.");
-        response!(items, 401, "User is not authorized to perform this request.");
+        response!(
+            items,
+            500,
+            "Internal server error occurred while processing request."
+        );
+        response!(
+            items,
+            401,
+            "User is not authorized to perform this request."
+        );
 
-        Ok(Responses { responses: items, ..Default::default() })
+        Ok(Responses {
+            responses: items,
+            ..Default::default()
+        })
     }
 }
 

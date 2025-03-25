@@ -26,3 +26,4 @@ schemars = {version = "0.8.22", features = ["preserve_order", "uuid1", "chrono",
 reqwest = { version = "0.12.15", features = ["cookies", "stream", "json"] }
 openssl = { version = "0.10.71", features = ["vendored"] }
 const_format = "0.2.34"
+serde_json_path = "0.7.2"

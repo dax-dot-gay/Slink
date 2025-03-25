@@ -5,7 +5,7 @@ use serde::{Serialize, de::DeserializeOwned};
 
 use crate::{Error, Res};
 
-use super::error::{ProviderError, ProviderType};
+use super::super::error::{ProviderError, ProviderType};
 
 #[async_trait::async_trait]
 pub trait ServerBinary {
