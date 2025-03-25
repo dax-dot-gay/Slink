@@ -35,6 +35,12 @@ pub enum Error {
     ValueError {
         value: String,
         reason: String
+    },
+
+    #[error("Encountered an issue requesting {url}: {reason}")]
+    RequestError {
+        url: String,
+        reason: String
     }
 }
 
@@ -43,8 +49,12 @@ impl Error {
         Err(Self::Unexpected(err.to_string()))
     }
 
-    pub fn value_error(value: impl Debug, error: impl std::error::Error) -> Self {
-        Self::ValueError { value: format!("{value:?}"), reason: error.to_string() }
+    pub fn value_error(value: impl Debug, error: impl Debug) -> Self {
+        Self::ValueError { value: format!("{value:?}"), reason: format!("{error:?}") }
+    }
+
+    pub fn request_error(error: reqwest::Error) -> Self {
+        Self::RequestError { url: error.url().and_then(|u| Some(u.to_string())).unwrap_or(String::from("UNKNOWN")), reason: error.to_string() }
     }
 }
 
