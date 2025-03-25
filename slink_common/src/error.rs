@@ -1,10 +1,12 @@
 use std::fmt::Debug;
 
 use okapi::openapi3::{RefOr, Responses, Response as OpenApiResponse};
-use rocket::{request, response::Responder, Request};
+use rocket::{request, response::Responder, serde::json::Json, Request};
 use rocket_okapi::response::OpenApiResponderInner;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::providers::error::{ProviderError, ProviderType};
 
 macro_rules! response {
     ($target:ident, $code:literal, $desc:expr) => {
@@ -18,7 +20,7 @@ macro_rules! response {
     };
 }
 
-#[derive(thiserror::Error, Clone, Debug, Serialize, Deserialize)]
+#[derive(thiserror::Error, Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub enum Error {
     #[error("An unexpected error occurred: {0}")]
     Unexpected(String),
@@ -41,6 +43,13 @@ pub enum Error {
     RequestError {
         url: String,
         reason: String
+    },
+
+    #[error("An error occured in the {provider_type}.{provider_name}: {error:?}")]
+    ProviderError {
+        provider_type: ProviderType,
+        provider_name: String,
+        error: ProviderError
     }
 }
 
@@ -56,6 +65,10 @@ impl Error {
     pub fn request_error(error: reqwest::Error) -> Self {
         Self::RequestError { url: error.url().and_then(|u| Some(u.to_string())).unwrap_or(String::from("UNKNOWN")), reason: error.to_string() }
     }
+
+    pub fn provider_error(provider_type: ProviderType, provider_name: impl AsRef<str>, error: ProviderError) -> Self {
+        Self::ProviderError { provider_type, provider_name: provider_name.as_ref().to_string(), error }
+    }
 }
 
 pub type Res<T> = Result<T, Error>;
@@ -69,8 +82,9 @@ pub enum ApiError {
     Uncaught(String),
 
     #[error("Encountered an unexpected internal error: {0:?}")]
+    #[schemars(with = "Error")]
     #[response(status = 500)]
-    Internal(String),
+    Internal(Json<Error>),
 
     #[error("Configuration error: {0}")]
     #[response(status = 500)]
@@ -111,7 +125,7 @@ impl ApiError {
 
 impl From<Error> for ApiError {
     fn from(value: Error) -> Self {
-        Self::Internal(value.to_string())
+        Self::Internal(Json(value))
     }
 }
 

@@ -1,85 +1,118 @@
+use std::collections::HashMap;
+
+use reqwest::ClientBuilder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{Error, Res, types::Version};
+use crate::{Res, USER_AGENT};
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-pub struct FabricServerVersion {
-    pub minecraft: String,
-    pub loader: Version,
-    pub installer: Version,
+use super::{error::ProviderError, server_binary::ServerBinary};
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema, PartialEq, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
+pub enum FabricComponentType {
+    Minecraft,
+    Loader,
+    Installer
 }
 
-impl FabricServerVersion {
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+pub struct FabricComponentVersion {
+    pub index: u64,
+    pub version: String,
+    pub stable: bool
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct FabricApiComponentVersion {
+    pub version: String,
+    pub stable: bool
+}
+
+impl Ord for FabricComponentVersion {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        Ord::cmp(&self.index, &other.index)
+    }
+}
+
+impl PartialOrd for FabricComponentVersion {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        PartialOrd::partial_cmp(&self.index, &other.index)
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+pub struct FabricCompiledVersion {
+    pub minecraft: FabricComponentVersion,
+    pub loader: FabricComponentVersion,
+    pub installer: FabricComponentVersion
+}
+
+impl FabricCompiledVersion {
     pub fn url(&self) -> String {
         format!(
             "https://meta.fabricmc.net/v2/versions/loader/{minecraft}/{loader}/{installer}/server/jar",
-            minecraft = self.minecraft,
-            loader = self.loader.to_string(),
-            installer = self.installer.to_string()
+            minecraft = self.minecraft.version,
+            loader = self.loader.version,
+            installer = self.installer.version
         )
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-pub struct FabricApiMinecraftVersion {
-    pub version: String,
-    pub stable: bool,
+
+pub struct FabricModloader;
+
+impl FabricModloader {
+    fn client() -> reqwest::Client {
+        ClientBuilder::new().user_agent(format!("{} {}", USER_AGENT, "components/fabric_modloader")).build().unwrap()
+    }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-pub struct FabricApiInstallerVersion {
-    pub version: String,
-    pub stable: bool,
-    pub url: String,
-    pub maven: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-pub struct FabricApiLoaderVersion {
-    pub version: String,
-    pub stable: bool,
-    pub separator: String,
-    pub build: u32,
-    pub maven: String,
-}
-
-pub struct FabricApi;
-
-impl FabricApi {
-    pub async fn minecraft_versions() -> Res<Vec<FabricApiMinecraftVersion>> {
-        let response = reqwest::get("https://meta.fabricmc.net/v2/versions/game")
-            .await
-            .or_else(|e| Err(Error::request_error(e)))?
-            .error_for_status()
-            .or_else(|e| Err(Error::request_error(e)))?;
-        response
-            .json()
-            .await
-            .or_else(|e| Err(Error::request_error(e)))
+#[async_trait::async_trait]
+impl ServerBinary for FabricModloader {
+    type ComponentType = FabricComponentType;
+    type ComponentVersion = FabricComponentVersion;
+    type CompiledVersion = FabricCompiledVersion;
+    fn provider_name() -> String {
+        String::from("fabric_modloader")
     }
 
-    pub async fn installer_versions() -> Res<Vec<FabricApiInstallerVersion>> {
-        let response = reqwest::get("https://meta.fabricmc.net/v2/versions/installer")
-            .await
-            .or_else(|e| Err(Error::request_error(e)))?
-            .error_for_status()
-            .or_else(|e| Err(Error::request_error(e)))?;
-        response
-            .json()
-            .await
-            .or_else(|e| Err(Error::request_error(e)))
+    fn get_component_types() -> Vec<Self::ComponentType> {
+        vec![FabricComponentType::Minecraft, FabricComponentType::Loader, FabricComponentType::Installer]
     }
 
-    pub async fn loader_versions() -> Res<Vec<FabricApiLoaderVersion>> {
-        let response = reqwest::get("https://meta.fabricmc.net/v2/versions/loader")
-            .await
-            .or_else(|e| Err(Error::request_error(e)))?
-            .error_for_status()
-            .or_else(|e| Err(Error::request_error(e)))?;
-        response
-            .json()
-            .await
-            .or_else(|e| Err(Error::request_error(e)))
-    }
+    fn get_compiled_version(
+        components: HashMap<Self::ComponentType, Self::ComponentVersion>,
+    ) -> Res<Self::CompiledVersion>
+    where
+        Self: Sized {
+            let minecraft = components.get(&FabricComponentType::Minecraft).ok_or(Self::wrap_error(ProviderError::MissingVersionComponent(String::from("minecraft"))))?.clone();
+            let loader = components.get(&FabricComponentType::Loader).ok_or(Self::wrap_error(ProviderError::MissingVersionComponent(String::from("loader"))))?.clone();
+            let installer = components.get(&FabricComponentType::Installer).ok_or(Self::wrap_error(ProviderError::MissingVersionComponent(String::from("installer"))))?.clone();
+
+            Ok(FabricCompiledVersion { minecraft, loader, installer })
+        }
+
+    async fn get_component_versions()
+    -> Res<HashMap<Self::ComponentType, Vec<Self::ComponentVersion>>>
+    where
+        Self: Sized {
+            let mut results: HashMap<FabricComponentType, Vec<FabricApiComponentVersion>> = HashMap::new();
+
+            results.insert(FabricComponentType::Minecraft, Self::wrap_result(ProviderError::response_as::<Vec<FabricApiComponentVersion>>(Self::client().get("https://meta.fabricmc.net/v2/versions/game").send().await).await)?);
+            results.insert(FabricComponentType::Loader, Self::wrap_result(ProviderError::response_as::<Vec<FabricApiComponentVersion>>(Self::client().get("https://meta.fabricmc.net/v2/versions/loader").send().await).await)?);
+            results.insert(FabricComponentType::Installer, Self::wrap_result(ProviderError::response_as::<Vec<FabricApiComponentVersion>>(Self::client().get("https://meta.fabricmc.net/v2/versions/installer").send().await).await)?);
+
+            Ok(results.iter().map(|(typ, versions)| (typ.clone(), versions.iter().enumerate().map(|(index, version)| FabricComponentVersion {
+                index: index as u64,
+                version: version.version.clone(),
+                stable: version.stable.clone()
+            }).collect::<Vec<FabricComponentVersion>>())).collect())
+        }
+
+    async fn download_server(version: Self::CompiledVersion) -> Res<reqwest::Response>
+    where
+        Self: Sized {
+            Self::wrap_result(ProviderError::response(Self::client().get(version.url()).send().await))
+        }
 }
