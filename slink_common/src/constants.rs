@@ -7,6 +7,7 @@ pub const APP_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 // Container constants
 pub const JAVA_CONTAINER_BASE: &'static str = "amazoncorretto:{version}";
 pub const CONTAINER_WORKING_DIRECTORY: &'static str = "/minecraft";
+pub const SERVER_BINARY_NAME: &'static str = "server.jar";
 
 // Security constants
 pub const HASHING_MEMORY: u32 = 16;

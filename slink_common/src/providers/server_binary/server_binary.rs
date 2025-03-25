@@ -1,65 +1,30 @@
-use std::{collections::HashMap, fmt::Debug, hash::Hash};
+use std::{collections::HashMap, fmt::Debug, path::Path};
 
 use schemars::JsonSchema;
 use serde::{Serialize, de::DeserializeOwned};
 
-use crate::{Error, Res};
+use crate::{types::minecraft::MinecraftVersion, Error, Res};
 
 use super::super::error::{ProviderError, ProviderType};
 
 #[async_trait::async_trait]
-pub trait ServerBinary {
-    type ComponentType: Debug
-        + Serialize
-        + DeserializeOwned
-        + Clone
-        + JsonSchema
-        + Eq
-        + PartialEq
-        + Hash;
-    type ComponentVersion: Debug
-        + Serialize
-        + DeserializeOwned
-        + Clone
-        + JsonSchema
-        + Eq
-        + PartialEq
-        + Ord
-        + PartialOrd;
-    type CompiledVersion: Debug + Serialize + DeserializeOwned + Clone + JsonSchema;
+pub trait ServerBinaryProvider {
+    type VersionComponent: Serialize + DeserializeOwned + Clone + Debug + JsonSchema + Eq + PartialEq;
 
-    fn provider_name() -> String;
+    fn components() -> Vec<String> where Self: Sized;
+    fn name() -> String where Self: Sized;
+    async fn get_components(minecraft_version: MinecraftVersion) -> Res<HashMap<String, Vec<Self::VersionComponent>>> where Self: Sized;
+    async fn install_to(minecraft_version: MinecraftVersion, components: HashMap<String, Self::VersionComponent>, directory: impl AsRef<Path>) -> Res<()> where Self: Sized;
 
-    fn wrap_error(error: ProviderError) -> Error
-    where
-        Self: Sized,
-    {
-        Error::provider_error(ProviderType::ServerBinary, Self::provider_name(), error)
+    fn result<T: Sized>(res: Result<T, ProviderError>) -> Res<T> where Self: Sized {
+        res.or_else(|e| Err(Error::provider_error(ProviderType::ServerBinary, Self::name(), e)))
     }
 
-    fn wrap_result<T>(res: Result<T, ProviderError>) -> Res<T>
-    where
-        Self: Sized,
-    {
-        res.or_else(|e| Err(Self::wrap_error(e)))
+    fn error(err: ProviderError) -> Error where Self: Sized{
+        Error::provider_error(ProviderType::ServerBinary, Self::name(), err)
     }
 
-    fn get_component_types() -> Vec<Self::ComponentType>
-    where
-        Self: Sized;
-
-    fn get_compiled_version(
-        components: HashMap<Self::ComponentType, Self::ComponentVersion>,
-    ) -> Res<Self::CompiledVersion>
-    where
-        Self: Sized;
-
-    async fn get_component_versions()
-    -> Res<HashMap<Self::ComponentType, Vec<Self::ComponentVersion>>>
-    where
-        Self: Sized;
-
-    async fn download_server(version: Self::CompiledVersion) -> Res<reqwest::Response>
-    where
-        Self: Sized;
+    fn id() -> String where Self: Sized {
+        format!("providers/server_binary/{}", Self::name())
+    }
 }
