@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use strfmt::strfmt;
 
-use crate::{Error, JAVA_CONTAINER_BASE, Res, USER_AGENT, utilities::get_one_at_path};
+use crate::{utilities::get_one_at_path, Error, Res, JAVA_CONTAINER_BASE, MINECRAFT_VERSIONS_MANIFEST, USER_AGENT};
 
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema, PartialEq, Eq)]
 pub struct JavaVersion(pub u8);
@@ -60,6 +60,10 @@ pub struct MinecraftVersion {
 
     #[serde(rename = "releaseTime")]
     pub release_ime: DateTime<Utc>,
+    pub sha1: String,
+
+    #[serde(rename = "complianceLevel")]
+    pub compliance_level: u32
 }
 
 impl MinecraftVersion {
@@ -110,6 +114,14 @@ impl MinecraftVersionList {
             .iter()
             .find(|v| v.id == self.latest.snapshot)
             .cloned()
+    }
+
+    pub async fn fetch() -> Res<Self> {
+        let client = reqwest::ClientBuilder::new()
+            .user_agent(format!("{} utils/minecraft-version", USER_AGENT))
+            .build()
+            .unwrap();
+        Error::response_as::<MinecraftVersionList>(client.get(MINECRAFT_VERSIONS_MANIFEST).send().await).await
     }
 }
 

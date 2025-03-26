@@ -35,6 +35,15 @@ pub enum ProviderError {
 
     #[error("Failed to parse response data: {0}")]
     ResponseDataError(String),
+
+    #[error("Unknown version component: {0}")]
+    UnknownVersionComponent(String),
+
+    #[error("No {component} versions for MCV {mc_version}")]
+    NoVersions {
+        component: String,
+        mc_version: String
+    }
 }
 
 impl ProviderError {

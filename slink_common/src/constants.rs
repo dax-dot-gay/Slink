@@ -15,3 +15,4 @@ pub const HASHING_ITERATIONS: u32 = 4;
 
 // Networking constants
 pub const USER_AGENT: &'static str = formatcp!("{APP_NAME}/{APP_VERSION}");
+pub const MINECRAFT_VERSIONS_MANIFEST: &'static str = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
