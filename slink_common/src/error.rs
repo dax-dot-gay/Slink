@@ -70,7 +70,13 @@ pub enum Error {
         path: String,
         data: String,
         reason: String
-    }
+    },
+
+    #[error("Failed to deserialize input: {0}")]
+    DeserializationError(String),
+
+    #[error("Failed to serialize input: {0}")]
+    SerializationError(String)
 }
 
 impl Error {
@@ -117,6 +123,14 @@ impl Error {
 
     pub async fn response_as<T: DeserializeOwned>(result: Result<reqwest::Response, reqwest::Error>) -> Res<T> {
         Self::response(result)?.json::<T>().await.or_else(|e| Err(Self::ResponseParsingError(e.to_string())))
+    }
+
+    pub fn deserialization(error: impl Debug) -> Self {
+        Self::DeserializationError(format!("{error:?}"))
+    }
+
+    pub fn serialization(error: impl Debug) -> Self {
+        Self::SerializationError(format!("{error:?}"))
     }
 }
 
