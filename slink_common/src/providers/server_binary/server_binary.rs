@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug, path::Path};
+use std::{collections::HashMap, fmt::Debug, path::PathBuf};
 
 use schemars::JsonSchema;
 use serde::{Serialize, de::DeserializeOwned};
@@ -14,7 +14,7 @@ pub trait ServerBinaryProvider {
     fn components() -> Vec<String> where Self: Sized;
     fn name() -> String where Self: Sized;
     async fn get_components(minecraft_version: MinecraftVersion) -> Res<HashMap<String, Vec<Self::VersionComponent>>> where Self: Sized;
-    async fn install_to(minecraft_version: MinecraftVersion, components: HashMap<String, Self::VersionComponent>, directory: impl AsRef<Path>) -> Res<()> where Self: Sized;
+    async fn install_to(minecraft_version: MinecraftVersion, components: HashMap<String, Self::VersionComponent>, directory: PathBuf) -> Res<()> where Self: Sized;
 
     async fn get_latest_stable_component(minecraft_version: MinecraftVersion, component: &str) -> Res<Self::VersionComponent> where Self: Sized {
         let components = Self::get_components(minecraft_version.clone()).await?;

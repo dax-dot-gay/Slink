@@ -43,6 +43,12 @@ pub enum ProviderError {
     NoVersions {
         component: String,
         mc_version: String
+    },
+
+    #[error("Failed to download to {path}: {reason}")]
+    DownloadError {
+        path: String,
+        reason: String
     }
 }
 
