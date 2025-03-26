@@ -9,6 +9,7 @@ use slink_common::types::{AppConfig, RunnerMode};
 use crate::models::{OptionalUser, RedactedUser, Session};
 
 pub mod authentication;
+pub mod servers;
 
 #[derive(JsonSchema, Serialize, Deserialize, Clone, Debug)]
 pub struct IndexInfo {

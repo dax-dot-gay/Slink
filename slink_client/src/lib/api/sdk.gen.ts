@@ -2,6 +2,7 @@
 
 import type { Options as ClientOptions, TDataShape, Client } from '@hey-api/client-axios';
 import type { GetIndexData, GetIndexResponse, LogoutData, LoginData, LoginResponse } from './types.gen';
+import { getIndexResponseTransformer } from './transformers.gen';
 import { client as _heyApiClient } from './client.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = ClientOptions<TData, ThrowOnError> & {
@@ -18,27 +19,34 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: Record<string, unknown>;
 };
 
-export const getIndex = <ThrowOnError extends boolean = false>(options?: Options<GetIndexData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).get<GetIndexResponse, unknown, ThrowOnError>({
-        url: '/',
-        ...options
-    });
-};
+export class DefaultService {
+    public static getIndex<ThrowOnError extends boolean = false>(options?: Options<GetIndexData, ThrowOnError>) {
+        return (options?.client ?? _heyApiClient).get<GetIndexResponse, unknown, ThrowOnError>({
+            responseTransformer: getIndexResponseTransformer,
+            url: '/',
+            ...options
+        });
+    }
+    
+}
 
-export const logout = <ThrowOnError extends boolean = false>(options?: Options<LogoutData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).delete<unknown, unknown, ThrowOnError>({
-        url: '/auth/login',
-        ...options
-    });
-};
-
-export const login = <ThrowOnError extends boolean = false>(options: Options<LoginData, ThrowOnError>) => {
-    return (options.client ?? _heyApiClient).post<LoginResponse, unknown, ThrowOnError>({
-        url: '/auth/login',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options?.headers
-        }
-    });
-};
+export class AuthenticationService {
+    public static logout<ThrowOnError extends boolean = false>(options?: Options<LogoutData, ThrowOnError>) {
+        return (options?.client ?? _heyApiClient).delete<unknown, unknown, ThrowOnError>({
+            url: '/auth/login',
+            ...options
+        });
+    }
+    
+    public static login<ThrowOnError extends boolean = false>(options: Options<LoginData, ThrowOnError>) {
+        return (options.client ?? _heyApiClient).post<LoginResponse, unknown, ThrowOnError>({
+            url: '/auth/login',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options?.headers
+            }
+        });
+    }
+    
+}

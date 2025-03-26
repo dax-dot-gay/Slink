@@ -16,7 +16,7 @@ import { useEffect } from "react";
 import { TbCube, TbLock, TbLogin2, TbUser } from "react-icons/tb";
 import { useForm } from "@mantine/form";
 import { PasswordField } from "../../components/fields/PasswordField";
-import { login } from "../../lib/api";
+import { AuthenticationService } from "../../lib/api";
 import { useNotifications } from "../../util/notifs";
 
 export function AuthView() {
@@ -65,13 +65,15 @@ export function AuthView() {
                 <Paper className="paper-light" p="lg" radius="sm" shadow="sm">
                     <form
                         onSubmit={form.onSubmit((values) => {
-                            login({ body: values }).then((result) => {
-                                if (result.data) {
-                                    reload().then(() => nav("/"));
-                                } else {
-                                    error(t("views.auth.error"));
+                            AuthenticationService.login({ body: values }).then(
+                                (result) => {
+                                    if (result.data) {
+                                        reload().then(() => nav("/"));
+                                    } else {
+                                        error(t("views.auth.error"));
+                                    }
                                 }
-                            });
+                            );
                         })}
                     >
                         <Stack gap="sm">

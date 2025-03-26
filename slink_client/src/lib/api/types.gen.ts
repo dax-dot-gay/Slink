@@ -8,8 +8,8 @@ export type IndexInfo = {
 
 export type Session = {
     _id?: string;
-    created: string;
-    last_connection: string;
+    created: Date;
+    last_connection: Date;
     user?: TsLink | null;
 };
 

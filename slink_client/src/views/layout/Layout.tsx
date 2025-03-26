@@ -32,7 +32,7 @@ import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { useApiState, useReload, useUser } from "../../components/contexts/api";
 import { useEffect } from "react";
-import { logout } from "../../lib/api";
+import { AuthenticationService } from "../../lib/api";
 
 export function LayoutView() {
     const { t } = useTranslation();
@@ -213,7 +213,9 @@ export function LayoutView() {
                                 variant="light"
                                 size="lg"
                                 onClick={() => {
-                                    logout().then(() => reload());
+                                    AuthenticationService.logout().then(() =>
+                                        reload()
+                                    );
                                 }}
                             >
                                 <TbLogout2 />

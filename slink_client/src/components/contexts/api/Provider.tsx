@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
-import { getIndex, IndexInfo } from "../../../lib/api";
+import { DefaultService, IndexInfo } from "../../../lib/api";
 import { ApiContext } from "./types";
 
 export function ApiProvider({
@@ -10,7 +10,7 @@ export function ApiProvider({
     const [clientContext, setClientContext] = useState<IndexInfo | null>(null);
     const [error, setError] = useState<string | null>(null);
     const reload = useCallback(async () => {
-        const result = await getIndex();
+        const result = await DefaultService.getIndex();
         if (result.data) {
             setClientContext(result.data);
             setError(null);
