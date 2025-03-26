@@ -163,6 +163,10 @@ pub enum ApiError {
     #[error("Missing authorization resources: {0}")]
     #[response(status = 401)]
     MissingAuthorization(String),
+
+    #[error("Resource referenced by {0} not found.")]
+    #[response(status = 404)]
+    NotFound(String)
 }
 
 impl ApiError {
@@ -187,6 +191,10 @@ impl ApiError {
 
     pub fn missing_auth(context: impl AsRef<str>) -> Self {
         Self::MissingAuthorization(context.as_ref().to_string())
+    }
+
+    pub fn not_found(resource: impl Into<String>) -> Self {
+        Self::NotFound(resource.into())
     }
 }
 

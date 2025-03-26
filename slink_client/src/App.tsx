@@ -6,11 +6,9 @@ import { Router } from "./util/routes.tsx";
 import { LocalizationProvider } from "./util/localization.tsx";
 import { theme } from "./util/theme.ts";
 import "./styles/index.scss";
-import { getIndex } from "./lib/api/sdk.gen.ts";
 import { ApiProvider } from "./components/contexts/api/Provider.tsx";
 
 function App() {
-    getIndex().then(console.log);
     return (
         <LocalizationProvider>
             <ApiProvider>

@@ -31,6 +31,28 @@ export type LoginModel = {
     password: string;
 };
 
+export type MinecraftVersionList = {
+    latest: MinecraftVersionLatest;
+    versions: Array<MinecraftVersion>;
+};
+
+export type MinecraftVersionLatest = {
+    release: string;
+    snapshot: string;
+};
+
+export type MinecraftVersion = {
+    id: string;
+    type: MinecraftVersionType;
+    url: string;
+    time: Date;
+    releaseTime: Date;
+    sha1: string;
+    complianceLevel: number;
+};
+
+export type MinecraftVersionType = 'release' | 'snapshot';
+
 export type GetIndexData = {
     body?: never;
     path?: never;
@@ -113,6 +135,152 @@ export type LoginResponses = {
 };
 
 export type LoginResponse = LoginResponses[keyof LoginResponses];
+
+export type ListMinecraftVersionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/providers/minecraft/versions';
+};
+
+export type ListMinecraftVersionsErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type ListMinecraftVersionsResponses = {
+    200: MinecraftVersionList;
+};
+
+export type ListMinecraftVersionsResponse = ListMinecraftVersionsResponses[keyof ListMinecraftVersionsResponses];
+
+export type GetLatestReleaseVersionData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/providers/minecraft/versions/latest_release';
+};
+
+export type GetLatestReleaseVersionErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type GetLatestReleaseVersionResponses = {
+    200: MinecraftVersion;
+};
+
+export type GetLatestReleaseVersionResponse = GetLatestReleaseVersionResponses[keyof GetLatestReleaseVersionResponses];
+
+export type GetLatestSnapshotVersionData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/providers/minecraft/versions/latest_snapshot';
+};
+
+export type GetLatestSnapshotVersionErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type GetLatestSnapshotVersionResponses = {
+    200: MinecraftVersion;
+};
+
+export type GetLatestSnapshotVersionResponse = GetLatestSnapshotVersionResponses[keyof GetLatestSnapshotVersionResponses];
+
+export type GetSpecificVersionData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/providers/minecraft/versions/{id}';
+};
+
+export type GetSpecificVersionErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type GetSpecificVersionResponses = {
+    200: MinecraftVersion;
+};
+
+export type GetSpecificVersionResponse = GetSpecificVersionResponses[keyof GetSpecificVersionResponses];
 
 export type ClientOptions = {
     baseURL: 'https://0.0.0.0:8000' | (string & {});

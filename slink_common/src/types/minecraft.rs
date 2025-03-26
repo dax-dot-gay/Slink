@@ -67,6 +67,11 @@ pub struct MinecraftVersion {
 }
 
 impl MinecraftVersion {
+    pub async fn from_id(id: impl AsRef<str>) -> Res<Option<Self>> {
+        let versions = MinecraftVersionList::fetch().await?;
+        Ok(versions.version(id))
+    }
+
     pub async fn metadata(&self) -> Res<MinecraftVersionMetadata> {
         let client = reqwest::ClientBuilder::new()
             .user_agent(format!("{} utils/minecraft-version", USER_AGENT))
@@ -122,6 +127,11 @@ impl MinecraftVersionList {
             .build()
             .unwrap();
         Error::response_as::<MinecraftVersionList>(client.get(MINECRAFT_VERSIONS_MANIFEST).send().await).await
+    }
+
+    pub fn version(&self, id: impl AsRef<str>) -> Option<MinecraftVersion> {
+        let id_string = id.as_ref().to_string();
+        self.versions.iter().find(|v| v.id == id_string).cloned()
     }
 }
 

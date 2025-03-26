@@ -10,6 +10,7 @@ use crate::models::{OptionalUser, RedactedUser, Session};
 
 pub mod authentication;
 pub mod servers;
+pub mod providers;
 
 #[derive(JsonSchema, Serialize, Deserialize, Clone, Debug)]
 pub struct IndexInfo {
@@ -33,7 +34,9 @@ pub fn apply(mut rocket: Rocket<rocket::Build>) -> Rocket<rocket::Build> {
     mount_endpoints_and_merged_docs! {
         rocket, "/".to_owned(), settings,
         "/" => openapi_get_routes_spec![get_index],
-        "/auth" => authentication::routes()
+        "/auth" => authentication::routes(),
+        "/servers" => servers::global::routes(),
+        "/providers/minecraft" => providers::minecraft_version::routes()
     };
     rocket.mount(
         "/doc",
