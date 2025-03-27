@@ -9,6 +9,7 @@ bytesize = { version = "2.0.1", features = ["serde"] }
 serde = { version = "1.0.219", features = ["derive"] }
 tokio = { version = "1.44.1", features = ["full"] }
 slink_common = {path = "../slink_common"}
+slink_macros = {path = "../slink_macros"}
 futures = "0.3.31"
 rocket = { version = "0.5.1", features = ["json", "secrets", "tls", "uuid"] }
 rocket_ws = "0.1.1"

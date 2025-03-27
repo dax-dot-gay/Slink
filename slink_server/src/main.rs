@@ -1,12 +1,13 @@
 use bson::doc;
+use chrono::TimeDelta;
 use controllers::apply;
-use fern::colors::{self, Color, ColoredLevelConfig};
-use futures::{executor::block_on, StreamExt as _};
+use fern::colors::{Color, ColoredLevelConfig};
+use futures::executor::block_on;
 use log::info;
-use manor::{Client, Collection, Model};
+use manor::{Client, Model};
 use models::User;
 use rocket::{fairing::AdHoc, http::Status, Request};
-use slink_common::{types::{AppConfig, DatabaseConfig, RequestId}, ApiError};
+use slink_common::{types::{AppConfig, DatabaseConfig, RequestId}, utilities::{Expiration, ResponseCache}, ApiError};
 use util::fairings::SessionFairing;
 mod util;
 mod controllers;
@@ -74,5 +75,6 @@ fn rocket() -> _ {
 
         })))
         .attach(SessionFairing)
+        .manage(ResponseCache::new(Expiration {lifetime: Some(TimeDelta::minutes(5)), idletime: Some(TimeDelta::seconds(30))}))
         .register("/", catchers![handle_error])
 }
