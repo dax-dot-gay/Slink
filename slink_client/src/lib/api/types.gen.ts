@@ -53,6 +53,21 @@ export type MinecraftVersion = {
 
 export type MinecraftVersionType = 'release' | 'snapshot';
 
+export type MinecraftVersionMetadata = {
+    client: MinecraftFileDownload;
+    server: MinecraftFileDownload;
+    java_version: JavaVersion;
+    version: MinecraftVersion;
+};
+
+export type MinecraftFileDownload = {
+    url: string;
+    sha1: string;
+    size: number;
+};
+
+export type JavaVersion = number;
+
 export type GetIndexData = {
     body?: never;
     path?: never;
@@ -281,6 +296,44 @@ export type GetSpecificVersionResponses = {
 };
 
 export type GetSpecificVersionResponse = GetSpecificVersionResponses[keyof GetSpecificVersionResponses];
+
+export type GetVersionMetadataData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/providers/minecraft/versions/{id}/metadata';
+};
+
+export type GetVersionMetadataErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type GetVersionMetadataResponses = {
+    200: MinecraftVersionMetadata;
+};
+
+export type GetVersionMetadataResponse = GetVersionMetadataResponses[keyof GetVersionMetadataResponses];
 
 export type ClientOptions = {
     baseURL: 'https://0.0.0.0:8000' | (string & {});

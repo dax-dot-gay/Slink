@@ -46,6 +46,8 @@ impl Into<u8> for JavaVersion {
 #[serde(rename_all = "snake_case")]
 pub enum MinecraftVersionType {
     Release,
+
+    #[serde(other)]
     Snapshot,
 }
 
@@ -139,7 +141,7 @@ impl MinecraftVersionList {
 pub struct MinecraftFileDownload {
     pub url: String,
     pub sha1: String,
-    pub size: String,
+    pub size: u64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
