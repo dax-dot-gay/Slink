@@ -54,7 +54,7 @@ pub(crate) fn handle_cache(_args: TokenStream, _input: TokenStream) -> TokenStre
             }
         };
         let secs = duration.as_secs();
-        quote! {Some(chrono::TimeDelta::seconds(#secs))}
+        quote! {Some(chrono::TimeDelta::seconds(#secs as i64))}
     } else {
         quote! {None}
     };
@@ -67,7 +67,7 @@ pub(crate) fn handle_cache(_args: TokenStream, _input: TokenStream) -> TokenStre
             }
         };
         let secs = duration.as_secs();
-        quote! {Some(chrono::TimeDelta::seconds(#secs))}
+        quote! {Some(chrono::TimeDelta::seconds(#secs as i64))}
     } else {
         quote! {None}
     };
