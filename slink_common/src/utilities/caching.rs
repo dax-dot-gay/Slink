@@ -1,9 +1,7 @@
 use std::time::Duration;
-
 use moka::{Expiry, future::Cache};
 use rocket::{
-    Request,
-    request::{self, FromRequest},
+    request::{self, FromRequest}, serde::json::Json, Request
 };
 use rocket_okapi::OpenApiFromRequest;
 use serde::{Serialize, de::DeserializeOwned};
@@ -90,20 +88,20 @@ impl ResponseCache {
 
     pub async fn cache_request<
         R: Send + Sync + Serialize + DeserializeOwned,
-        F: Future<Output = ApiResult<R>>,
+        F: Future<Output = ApiResult<Json<R>>>,
     >(
         &self,
         key: impl AsRef<str>,
         initializer: F,
         expiration: Option<Expiration>,
-    ) -> ApiResult<R> {
+    ) -> ApiResult<Json<R>> {
         let key: String = key.as_ref().to_string();
         let default_expr = self.default_expiration.clone();
         let output = self
             .cache
             .try_get_with(key, async move {
                 match initializer.await {
-                    Ok(result) => to_value(result)
+                    Ok(result) => to_value(result.into_inner())
                         .or_else(|e| Err(ApiError::from(Error::SerializationError(e.to_string()))))
                         .and_then(|r| Ok((expiration.unwrap_or(default_expr), r))),
                     Err(e) => Err(e),
@@ -113,7 +111,8 @@ impl ResponseCache {
 
         match output {
             Ok((_, value)) => from_value::<R>(value)
-                .or_else(|e| Err(ApiError::from(Error::SerializationError(e.to_string())))),
+                .or_else(|e| Err(ApiError::from(Error::SerializationError(e.to_string()))))
+                .and_then(|r| Ok(Json(r))),
             Err(err) => Err(err.as_ref().clone()),
         }
     }
