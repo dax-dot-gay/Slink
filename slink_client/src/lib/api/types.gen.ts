@@ -68,6 +68,20 @@ export type MinecraftFileDownload = {
 
 export type JavaVersion = number;
 
+export type ServerBinaryVersion = {
+    Fabric: FabricServerBinaryVersion;
+};
+
+export type FabricServerBinaryVersion = {
+    component: 'loader';
+    version: string;
+    stable: boolean;
+} | {
+    component: 'installer';
+    version: string;
+    stable: boolean;
+};
+
 export type GetIndexData = {
     body?: never;
     path?: never;
@@ -334,6 +348,85 @@ export type GetVersionMetadataResponses = {
 };
 
 export type GetVersionMetadataResponse = GetVersionMetadataResponses[keyof GetVersionMetadataResponses];
+
+export type GetProviderComponentsData = {
+    body?: never;
+    path: {
+        name: string;
+    };
+    query?: never;
+    url: '/providers/server_binary/{name}/components';
+};
+
+export type GetProviderComponentsErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type GetProviderComponentsResponses = {
+    200: Array<string>;
+};
+
+export type GetProviderComponentsResponse = GetProviderComponentsResponses[keyof GetProviderComponentsResponses];
+
+export type GetCompatibleVersionsData = {
+    body?: never;
+    path: {
+        name: string;
+        minecraft: string;
+    };
+    query?: never;
+    url: '/providers/server_binary/{name}/{minecraft}/components';
+};
+
+export type GetCompatibleVersionsErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type GetCompatibleVersionsResponses = {
+    200: {
+        [key: string]: Array<ServerBinaryVersion>;
+    };
+};
+
+export type GetCompatibleVersionsResponse = GetCompatibleVersionsResponses[keyof GetCompatibleVersionsResponses];
 
 export type ClientOptions = {
     baseURL: 'https://0.0.0.0:8000' | (string & {});

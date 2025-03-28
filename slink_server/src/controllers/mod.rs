@@ -36,7 +36,8 @@ pub fn apply(mut rocket: Rocket<rocket::Build>) -> Rocket<rocket::Build> {
         "/" => openapi_get_routes_spec![get_index],
         "/auth" => authentication::routes(),
         "/servers" => servers::global::routes(),
-        "/providers/minecraft" => providers::minecraft_version::routes()
+        "/providers/minecraft" => providers::minecraft_version::routes(),
+        "/providers/server_binary" => providers::server_binary::routes()
     };
     rocket.mount(
         "/doc",

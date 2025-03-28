@@ -11,7 +11,7 @@ use crate::models::User;
 #[cache(key = "providers.mc_version.versions", life_time = "15m")]
 #[openapi(tag = "Providers", tag = "Minecraft Version Provider")]
 #[get("/versions")]
-pub async fn list_minecraft_versions(_user: User) -> ApiResult<Json<MinecraftVersionList>> {
+async fn list_minecraft_versions(_user: User) -> ApiResult<Json<MinecraftVersionList>> {
     MinecraftVersionList::fetch()
         .await
         .or_else(|e| Err(e.into()))
@@ -21,7 +21,7 @@ pub async fn list_minecraft_versions(_user: User) -> ApiResult<Json<MinecraftVer
 #[cache(key = "providers.mc_version.latest.release", life_time = "15m")]
 #[openapi(tag = "Providers", tag = "Minecraft Version Provider")]
 #[get("/versions/latest_release")]
-pub async fn get_latest_release_version(_user: User) -> ApiResult<Json<MinecraftVersion>> {
+async fn get_latest_release_version(_user: User) -> ApiResult<Json<MinecraftVersion>> {
     let versions = MinecraftVersionList::fetch()
         .await
         .or_else(|e| Err::<_, ApiError>(e.into()))?;
@@ -35,7 +35,7 @@ pub async fn get_latest_release_version(_user: User) -> ApiResult<Json<Minecraft
 #[cache(key = "providers.mc_version.latest.snapshot", life_time = "15m")]
 #[openapi(tag = "Providers", tag = "Minecraft Version Provider")]
 #[get("/versions/latest_snapshot")]
-pub async fn get_latest_snapshot_version(_user: User) -> ApiResult<Json<MinecraftVersion>> {
+async fn get_latest_snapshot_version(_user: User) -> ApiResult<Json<MinecraftVersion>> {
     let versions = MinecraftVersionList::fetch()
         .await
         .or_else(|e| Err::<_, ApiError>(e.into()))?;
@@ -49,7 +49,7 @@ pub async fn get_latest_snapshot_version(_user: User) -> ApiResult<Json<Minecraf
 #[cache(key = "providers.mc_version.{id}", life_time = "15m")]
 #[openapi(tag = "Providers", tag = "Minecraft Version Provider")]
 #[get("/versions/<id>")]
-pub async fn get_specific_version(_user: User, id: &str) -> ApiResult<Json<MinecraftVersion>> {
+async fn get_specific_version(_user: User, id: &str) -> ApiResult<Json<MinecraftVersion>> {
     let versions = MinecraftVersionList::fetch()
         .await
         .or_else(|e| Err::<_, ApiError>(e.into()))?;
@@ -63,7 +63,7 @@ pub async fn get_specific_version(_user: User, id: &str) -> ApiResult<Json<Minec
 #[cache(key = "providers.mc_version.{id}.metadata", life_time = "15m")]
 #[openapi(tag = "Providers", tag = "Minecraft Version Provider")]
 #[get("/versions/<id>/metadata")]
-pub async fn get_version_metadata(_user: User, id: &str) -> ApiResult<Json<MinecraftVersionMetadata>> {
+async fn get_version_metadata(_user: User, id: &str) -> ApiResult<Json<MinecraftVersionMetadata>> {
     let versions = MinecraftVersionList::fetch()
         .await
         .or_else(|e| Err::<_, ApiError>(e.into()))?;

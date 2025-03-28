@@ -2,7 +2,6 @@ use crate::util::types::TSLink;
 use bson::Uuid;
 use manor::{Link, schema};
 use schemars::JsonSchema;
-use slink_common::providers::ServerBinaryVersionTypes;
 
 use super::User;
 
@@ -15,6 +14,5 @@ pub struct MinecraftServer {
     pub name: String,
 
     #[schemars(with = "TSLink")]
-    pub owner: Link<User>,
-    pub server_version: ServerBinaryVersionTypes,
+    pub owner: Link<User>
 }

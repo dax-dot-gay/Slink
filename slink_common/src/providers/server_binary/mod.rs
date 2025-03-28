@@ -1,2 +1,2 @@
-pub mod fabric_server;
+pub mod fabric;
 pub mod server_binary;

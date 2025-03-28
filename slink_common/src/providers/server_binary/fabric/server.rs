@@ -1,11 +1,7 @@
-use std::{
-    collections::HashMap,
-    path::PathBuf
-};
+use std::{collections::HashMap, path::PathBuf};
 
 use futures::StreamExt;
 use reqwest::{Client, ClientBuilder};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::io::AsyncWriteExt;
@@ -15,14 +11,7 @@ use crate::{
     types::minecraft::MinecraftVersion, utilities::get_at_path,
 };
 
-use super::server_binary::ServerBinaryProvider;
-
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema, Eq, PartialEq)]
-#[serde(tag = "component", rename_all = "snake_case")]
-pub enum FabricServerBinaryVersion {
-    Loader { version: String, stable: bool },
-    Installer { version: String, stable: bool },
-}
+use super::{FabricServerBinaryVersion, ServerBinaryProvider, ServerBinaryVersion};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct LoaderVersion {
@@ -36,36 +25,27 @@ struct InstallerVersion {
     pub stable: bool,
 }
 
-impl FabricServerBinaryVersion {
-    pub fn version(&self) -> String {
-        match self {
-            Self::Loader { version, .. } => version.clone(),
-            Self::Installer { version, .. } => version.clone(),
+pub struct FabricServerBinaryProvider;
+
+impl FabricServerBinaryProvider {
+    #[allow(irrefutable_let_patterns)]
+    fn as_fabric_version(version: ServerBinaryVersion) -> Res<FabricServerBinaryVersion> {
+        if let ServerBinaryVersion::Fabric(v) = version {
+            Ok(v)
+        } else {
+            Err(Self::error(ProviderError::IncorrectArg(String::from(
+                "ServerBinaryVersion::Fabric",
+            ))))
         }
     }
 
-    pub fn kind(&self) -> String {
-        match self {
-            Self::Loader { .. } => "loader",
-            Self::Installer { .. } => "installer",
-        }
-        .to_string()
-    }
-
-
-    pub fn stable(&self) -> bool {
-        match self {
-            Self::Loader {stable, ..} => *stable,
-            Self::Installer {stable, ..} => *stable,
-        }
+    fn as_global_version(version: FabricServerBinaryVersion) -> ServerBinaryVersion {
+        ServerBinaryVersion::Fabric(version)
     }
 }
 
-pub struct FabricServerBinaryProvider;
-
 #[async_trait::async_trait]
 impl ServerBinaryProvider for FabricServerBinaryProvider {
-    type VersionComponent = FabricServerBinaryVersion;
     fn name() -> String
     where
         Self: Sized,
@@ -82,12 +62,12 @@ impl ServerBinaryProvider for FabricServerBinaryProvider {
 
     async fn get_components(
         minecraft_version: MinecraftVersion,
-    ) -> Res<HashMap<String, Vec<Self::VersionComponent>>>
+    ) -> Res<HashMap<String, Vec<ServerBinaryVersion>>>
     where
         Self: Sized,
     {
         let loader_versions = get_at_path::<LoaderVersion>(
-            "$.[*].loader",
+            "$[*].loader",
             &Self::result(
                 ProviderError::response_as::<Value>(
                     Self::client()
@@ -111,14 +91,16 @@ impl ServerBinaryProvider for FabricServerBinaryProvider {
             .await,
         )?;
 
-        let mut components: HashMap<String, Vec<FabricServerBinaryVersion>> = HashMap::new();
+        let mut components: HashMap<String, Vec<ServerBinaryVersion>> = HashMap::new();
         components.insert(
             String::from("loader"),
             loader_versions
                 .iter()
-                .map(|v| FabricServerBinaryVersion::Loader {
-                    version: v.version.clone(),
-                    stable: v.stable,
+                .map(|v| {
+                    ServerBinaryVersion::Fabric(FabricServerBinaryVersion::Loader {
+                        version: v.version.clone(),
+                        stable: v.stable,
+                    })
                 })
                 .collect(),
         );
@@ -126,9 +108,11 @@ impl ServerBinaryProvider for FabricServerBinaryProvider {
             String::from("installer"),
             installer_versions
                 .iter()
-                .map(|v| FabricServerBinaryVersion::Installer {
-                    version: v.version.clone(),
-                    stable: v.stable,
+                .map(|v| {
+                    ServerBinaryVersion::Fabric(FabricServerBinaryVersion::Installer {
+                        version: v.version.clone(),
+                        stable: v.stable,
+                    })
                 })
                 .collect(),
         );
@@ -138,20 +122,24 @@ impl ServerBinaryProvider for FabricServerBinaryProvider {
 
     async fn install_to(
         minecraft_version: MinecraftVersion,
-        components: HashMap<String, Self::VersionComponent>,
+        components: HashMap<String, ServerBinaryVersion>,
         directory: PathBuf,
     ) -> Res<()>
     where
         Self: Sized,
     {
-        let loader_version = Self::result(components.get(&String::from("loader")).ok_or(
-            ProviderError::MissingVersionComponent(String::from("loader")),
-        ))?
-        .clone();
-        let installer_version = Self::result(components.get(&String::from("installer")).ok_or(
-            ProviderError::MissingVersionComponent(String::from("installer")),
-        ))?
-        .clone();
+        let loader_version = Self::as_fabric_version(
+            Self::result(components.get(&String::from("loader")).ok_or(
+                ProviderError::MissingVersionComponent(String::from("loader")),
+            ))?
+            .clone(),
+        )?;
+        let installer_version = Self::as_fabric_version(
+            Self::result(components.get(&String::from("installer")).ok_or(
+                ProviderError::MissingVersionComponent(String::from("installer")),
+            ))?
+            .clone(),
+        )?;
 
         let response = Self::result(ProviderError::response(Self::client().get(format!("https://meta.fabricmc.net/v2/versions/loader/{mc}/{loader}/{installer}/server/jar", mc=minecraft_version.id, loader=loader_version.version(), installer=installer_version.version())).send().await))?;
         if let Ok(mut file) = tokio::fs::File::create_new(directory.join(SERVER_BINARY_NAME)).await
@@ -195,29 +183,81 @@ impl ServerBinaryProvider for FabricServerBinaryProvider {
         }
     }
 
-    async fn get_latest_stable_component(minecraft_version: MinecraftVersion, component: &str) -> Res<Self::VersionComponent> where Self: Sized {
+    async fn get_latest_stable_component(
+        minecraft_version: MinecraftVersion,
+        component: &str,
+    ) -> Res<ServerBinaryVersion>
+    where
+        Self: Sized,
+    {
         let components = Self::get_components(minecraft_version.clone()).await?;
         if let Some(versions) = components.get(&component.to_string()) {
-            if let Some(latest) = versions.iter().filter_map(|v| if v.stable() {Some(v.clone())} else {None}).collect::<Vec<Self::VersionComponent>>().first() {
+            if let Some(latest) = versions
+                .iter()
+                .filter_map(|v| {
+                    if let Ok(vers) = Self::as_fabric_version(v.clone()) {
+                        if vers.stable() {
+                            Some(Self::as_global_version(vers.clone()))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<ServerBinaryVersion>>()
+                .first()
+            {
                 Ok(latest.clone())
             } else {
-                Err(Self::error(ProviderError::NoVersions { component: component.to_string(), mc_version: minecraft_version.id }))
+                Err(Self::error(ProviderError::NoVersions {
+                    component: component.to_string(),
+                    mc_version: minecraft_version.id,
+                }))
             }
         } else {
-            Err(Self::error(ProviderError::UnknownVersionComponent(component.to_string())))
+            Err(Self::error(ProviderError::UnknownVersionComponent(
+                component.to_string(),
+            )))
         }
     }
 
-    async fn get_latest_unstable_component(minecraft_version: MinecraftVersion, component: &str) -> Res<Self::VersionComponent> where Self: Sized {
+    async fn get_latest_unstable_component(
+        minecraft_version: MinecraftVersion,
+        component: &str,
+    ) -> Res<ServerBinaryVersion>
+    where
+        Self: Sized,
+    {
         let components = Self::get_components(minecraft_version.clone()).await?;
         if let Some(versions) = components.get(&component.to_string()) {
-            if let Some(latest) = versions.iter().filter_map(|v| if !v.stable() {Some(v.clone())} else {None}).collect::<Vec<Self::VersionComponent>>().first() {
+            if let Some(latest) = versions
+                .iter()
+                .filter_map(|v| {
+                    if let Ok(vers) = Self::as_fabric_version(v.clone()) {
+                        if !vers.stable() {
+                            Some(Self::as_global_version(vers.clone()))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<ServerBinaryVersion>>()
+                .first()
+            {
                 Ok(latest.clone())
             } else {
-                Err(Self::error(ProviderError::NoVersions { component: component.to_string(), mc_version: minecraft_version.id }))
+                Err(Self::error(ProviderError::NoVersions {
+                    component: component.to_string(),
+                    mc_version: minecraft_version.id,
+                }))
             }
         } else {
-            Err(Self::error(ProviderError::UnknownVersionComponent(component.to_string())))
+            Err(Self::error(ProviderError::UnknownVersionComponent(
+                component.to_string(),
+            )))
         }
     }
 }

@@ -49,7 +49,10 @@ pub enum ProviderError {
     DownloadError {
         path: String,
         reason: String
-    }
+    },
+
+    #[error("Incorrect provider argument (expected {0})")]
+    IncorrectArg(String)
 }
 
 impl ProviderError {
