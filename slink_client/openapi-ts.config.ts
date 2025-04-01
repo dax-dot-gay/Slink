@@ -6,7 +6,10 @@ export default defineConfig({
     plugins: [
         ...defaultPlugins,
         "@hey-api/client-axios",
-        "@hey-api/transformers",
+        {
+            name: "@hey-api/transformers",
+            dates: true,
+        },
         {
             asClass: true,
             transformer: true,

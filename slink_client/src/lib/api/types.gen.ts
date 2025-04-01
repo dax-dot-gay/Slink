@@ -31,27 +31,13 @@ export type LoginModel = {
     password: string;
 };
 
-export type MinecraftVersionList = {
-    latest: MinecraftVersionLatest;
-    versions: Array<MinecraftVersion>;
+export type MinecraftServer = {
+    _id?: string;
+    name: string;
+    owner: TsLink;
+    minecraft_version: MinecraftVersionMetadata;
+    modloader_version?: ServerBinaryVersion | null;
 };
-
-export type MinecraftVersionLatest = {
-    release: string;
-    snapshot: string;
-};
-
-export type MinecraftVersion = {
-    id: string;
-    type: MinecraftVersionType;
-    url: string;
-    time: Date;
-    releaseTime: Date;
-    sha1: string;
-    complianceLevel: number;
-};
-
-export type MinecraftVersionType = 'release' | 'snapshot';
 
 export type MinecraftVersionMetadata = {
     client: MinecraftFileDownload;
@@ -68,6 +54,18 @@ export type MinecraftFileDownload = {
 
 export type JavaVersion = number;
 
+export type MinecraftVersion = {
+    id: string;
+    type: MinecraftVersionType;
+    url: string;
+    time: Date;
+    releaseTime: Date;
+    sha1: string;
+    complianceLevel: number;
+};
+
+export type MinecraftVersionType = 'release' | 'snapshot';
+
 export type ServerBinaryVersion = {
     Fabric: FabricServerBinaryVersion;
 };
@@ -80,6 +78,22 @@ export type FabricServerBinaryVersion = {
     component: 'installer';
     version: string;
     stable: boolean;
+};
+
+export type ServerCreationParams = {
+    name: string;
+    minecraft_version: string;
+    mod_loader?: ServerBinaryVersion | null;
+};
+
+export type MinecraftVersionList = {
+    latest: MinecraftVersionLatest;
+    versions: Array<MinecraftVersion>;
+};
+
+export type MinecraftVersionLatest = {
+    release: string;
+    snapshot: string;
 };
 
 export type GetIndexData = {
@@ -164,6 +178,78 @@ export type LoginResponses = {
 };
 
 export type LoginResponse = LoginResponses[keyof LoginResponses];
+
+export type GetOwnedServersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/servers/owned';
+};
+
+export type GetOwnedServersErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type GetOwnedServersResponses = {
+    200: Array<MinecraftServer>;
+};
+
+export type GetOwnedServersResponse = GetOwnedServersResponses[keyof GetOwnedServersResponses];
+
+export type CreateServerData = {
+    body: ServerCreationParams;
+    path?: never;
+    query?: never;
+    url: '/servers/create';
+};
+
+export type CreateServerErrors = {
+    /**
+     * # [Error 400](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)
+     * An error occurred while trying to parse the user's request.
+     */
+    400: unknown;
+    /**
+     * # [Error 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+     * User is not authorized to perform this request.
+     */
+    401: unknown;
+    /**
+     * # [Error 404](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)
+     * Requested resource not found
+     */
+    404: unknown;
+    /**
+     * # [Error 500](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500)
+     * Internal server error occurred while processing request.
+     */
+    500: unknown;
+};
+
+export type CreateServerResponses = {
+    200: MinecraftServer;
+};
+
+export type CreateServerResponse = CreateServerResponses[keyof CreateServerResponses];
 
 export type ListMinecraftVersionsData = {
     body?: never;
